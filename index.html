@@ -328,7 +328,6 @@
                 try {
                     console.log('Starting to load KNMI station data...');
                     const allData = [];
-                    const stationIds = Object.keys(stationCoordinates).map(Number);
                     
                     // List of all expected station files
                     const stationFiles = [
@@ -484,7 +483,8 @@
                 return { TX: 0, TN: 0, SQ: 0, RH: 0, dryDayProbability: 100, rainDuration: 0, heavyRainProb: 0 };
             }
             
-            const maxYear = Math.max(...climateData.map(d => d.year || 2026));
+            // GEBRUIKT VEILIGE METHODE OM JAARTAL TE BEPALEN (CRASHES VOORKOMEN)
+            const maxYear = climateData.reduce((max, d) => (d.year > max ? d.year : max), 2026);
             
             // For Rumpt (station 356), use ARIMA prediction
             // For other locations, use IDW interpolation
