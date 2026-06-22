@@ -1,0 +1,1001 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Persoonlijk KNMI Dashboard - BERGNEUT</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.88);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+        body {
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            transition: background-image 1s ease-in-out;
+        }
+        #map { width: 100%; height: 100%; border-radius: 1rem; z-index: 10; }
+    </style>
+</head>
+<body class="min-h-screen text-slate-800 font-sans antialiased p-4 md:p-6">
+    <div class="max-w-7xl mx-auto space-y-6">
+        <header class="flex flex-col md:flex-row justify-between items-center bg-white/95 backdrop-blur border border-slate-200 p-6 rounded-3xl shadow-xl gap-4">
+            <div>
+                <h1 class="text-2xl font-black tracking-tight text-slate-900 flex items-center gap-2">
+                    Persoonlijk KNMI Dashboard <span class="text-blue-600">BERGNEUT</span>
+                </h1>
+                <p class="text-xs text-slate-500 font-medium mt-1">🔮 ARIMA Voorspelling voor Rumpt & 30-jarig gemiddelde voor vrije locaties</p>
+            </div>
+            <div class="flex flex-col items-end gap-2 text-right">
+                <div class="flex items-center gap-2">
+                    <span class="text-xs font-bold uppercase tracking-wider text-slate-400 bg-slate-100 px-3 py-1.5 rounded-xl">Week <span id="current-week-display">--</span></span>
+                    <span id="season-tag" class="px-3 py-1.5 rounded-xl text-xs font-bold shadow-sm border text-white transition-all">Laden...</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="bg-white/95 backdrop-blur border border-slate-200 p-5 rounded-3xl shadow-md lg:col-span-1 flex flex-col justify-between gap-4">
+                <div>
+                    <label class="text-xs font-bold uppercase tracking-wider text-slate-400 block mb-2">1. Locatie selectie</label>
+                    <p class="text-[11px] text-slate-500 mb-3">Klik op de kaart voor een willekeurige locatie (IDW-gemiddelde), of reset naar basisstation Rumpt.</p>
+                    <div class="w-full aspect-[4/4] rounded-2xl overflow-hidden border border-slate-200 shadow-inner relative bg-slate-100">
+                        <div id="map"></div>
+                    </div>
+                </div>
+                <div class="border-t pt-3 flex flex-col gap-2">
+                    <div class="flex justify-between items-center">
+                        <span id="dashboard-instruction-text" class="text-[11px] text-slate-600 font-semibold">Laden...</span>
+                        <button onclick="resetToRumpt()" class="text-[11px] font-bold text-blue-600 hover:text-blue-800 transition-colors flex items-center gap-1">🔄 Naar Rumpt</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white/95 backdrop-blur border border-slate-200 p-5 rounded-3xl shadow-md lg:col-span-2 flex flex-col justify-between gap-4">
+                <div>
+                    <div class="flex justify-between items-center mb-4">
+                        <label class="text-xs font-bold uppercase tracking-wider text-slate-400 block">2. Gegevenstype</label>
+                    </div>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        <button data-metric="TX" class="metric-btn px-4 py-3 rounded-xl text-xs font-bold bg-blue-600 text-white shadow-sm transition-all text-left flex flex-col justify-between h-16"><span>🔥 Max Temp</span><span class="text-right w-full text-[10px] opacity-80">°C</span></button>
+                        <button data-metric="TN" class="metric-btn px-4 py-3 rounded-xl text-xs font-bold bg-white text-slate-700 border border-slate-200 shadow-sm transition-all text-left flex flex-col justify-between h-16"><span>❄️ Min Temp</span><span class="text-right w-full text-[10px] opacity-50">°C</span></button>
+                        <button data-metric="SQ" class="metric-btn px-4 py-3 rounded-xl text-xs font-bold bg-white text-slate-700 border border-slate-200 shadow-sm transition-all text-left flex flex-col justify-between h-16"><span>☀️ Zonuren</span><span class="text-right w-full text-[10px] opacity-50">uur</span></button>
+                        <button data-metric="RH" class="metric-btn px-4 py-3 rounded-xl text-xs font-bold bg-white text-slate-700 border border-slate-200 shadow-sm transition-all text-left flex flex-col justify-between h-16"><span>🌤️ Droge Dag Kans</span><span class="text-right w-full text-[10px] opacity-50">% kans</span></button>
+                    </div>
+                </div>
+                <div class="bg-purple-50/80 border border-purple-100 p-3 rounded-2xl text-[11px] text-purple-900 flex items-center gap-2">
+                    <span id="dynamic-info-icon">📊</span>
+                    <p id="dynamic-info-text">Laden van metric informatie...</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white/80 backdrop-blur border border-slate-200 px-5 py-3 rounded-2xl shadow-sm flex justify-between items-center flex-wrap gap-2 text-xs">
+            <span class="text-slate-500 font-medium">Kalender kleurindicatie op basis van de geselecteerde waarden:</span>
+            <div class="flex items-center gap-2 font-bold text-slate-600">
+                <span id="legend-min">-5 °C</span>
+                <div id="legend-gradient" class="w-32 h-3 rounded-full bg-gradient-to-r from-blue-500 via-yellow-100 to-red-600"></div>
+                <span id="legend-max">28 °C</span>
+            </div>
+        </div>
+
+        <div id="calendar-grid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"></div>
+
+        <footer class="bg-white/95 border border-slate-200 p-6 rounded-3xl shadow-lg space-y-3">
+            <h4 class="text-sm font-black text-slate-900 flex items-center gap-2">📘 Hoe werkt dit dashboard?</h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs leading-relaxed text-slate-600">
+                <div class="bg-slate-50 p-4 rounded-2xl border">
+                    <h5 class="font-bold text-slate-800 mb-1">📊 Data & Methodes</h5>
+                    <p>Gebruikt historische KNMI-data (1996-2026) met twee rekenmethodes: <strong>ARIMA(1,0,0)</strong> voor Rumpt (statistische voorspelling) en <strong>IDW 30-jarig Gemiddelde</strong> voor willekeurige locaties (ruimtelijke interpolatie). Het 31e jaar toont de voorspelling.</p>
+                </div>
+                <div class="bg-slate-50 p-4 rounded-2xl border">
+                    <h5 class="font-bold text-slate-800 mb-1">🗺️ Locatie & Kaart</h5>
+                    <p>Selecteer Rumpt voor ARIMA-voorspellingen of klik op de kaart voor IDW-berekeningen op basis van omliggende weerstations. Alle 25 KNMI-stations zijn zichtbaar.</p>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <div id="day-detail-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-2xl w-full border border-slate-200 overflow-hidden">
+            <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                <div>
+                    <h4 id="modal-date-title" class="text-lg font-black text-slate-900">Dag Details</h4>
+                    <p id="modal-station-count" class="text-xs text-slate-400 font-medium mt-0.5">Rumpt & Omgeving</p>
+                </div>
+                <button onclick="closeDayDetail()" class="text-slate-400 hover:text-slate-600 text-xl font-bold bg-white w-8 h-8 rounded-full border shadow-sm flex items-center justify-center">&times;</button>
+            </div>
+            <div class="p-6 space-y-4 max-h-[85vh] overflow-y-auto pb-8">
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    <div class="bg-amber-50/60 border border-amber-100 p-3 rounded-2xl">
+                        <span class="text-[10px] uppercase font-bold text-amber-600 block">Max Temp</span>
+                        <span id="modal-tx" class="text-base font-black text-amber-900">--</span>
+                    </div>
+                    <div class="bg-blue-50/60 border border-blue-100 p-3 rounded-2xl">
+                        <span class="text-[10px] uppercase font-bold text-blue-600 block">Min Temp</span>
+                        <span id="modal-tn" class="text-base font-black text-blue-900">--</span>
+                    </div>
+                    <div class="bg-yellow-50/60 border border-yellow-100 p-3 rounded-2xl">
+                        <span class="text-[10px] uppercase font-bold text-yellow-600 block">Zonneschijn</span>
+                        <span id="modal-sq" class="text-base font-black text-yellow-900">--</span>
+                    </div>
+                    <div class="bg-emerald-50/60 border border-emerald-100 p-3 rounded-2xl">
+                        <span class="text-[10px] uppercase font-bold text-emerald-600 block">Kans op Droog</span>
+                        <span id="modal-dry-prob" class="text-base font-black text-emerald-900">--</span>
+                    </div>
+                </div>
+
+                <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4">
+                    <span class="text-[10px] uppercase font-bold text-slate-400 block mb-2">🔮 Aanvullende Neerslag Analyse (Prognose)</span>
+                    <div class="space-y-2 text-xs">
+                        <div class="flex justify-between border-b pb-1">
+                            <span class="text-slate-500">Kans op neerslag:</span>
+                            <span id="modal-rain-prob" class="font-bold text-indigo-600">--</span>
+                        </div>
+                        <div class="flex justify-between border-b pb-1">
+                            <span class="text-slate-500">Verwachte regenduur:</span>
+                            <span id="modal-dr" class="font-bold text-slate-800">--</span>
+                        </div>
+                        <div class="flex justify-between border-b pb-1">
+                            <span class="text-slate-500">Verwachte etmaalsom:</span>
+                            <span id="rain-amount" class="font-bold text-slate-800">--</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-slate-500">Kans op zware bui (>5mm/u):</span>
+                            <span id="modal-heavy-prob" class="font-bold text-red-600">--</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white border border-slate-200 rounded-2xl p-4">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-3 pb-2 border-b">
+                        <span class="text-[10px] uppercase font-bold text-slate-400 block">📈 Historische tijdreeks op deze dag (1996 - 2026)</span>
+                        <div id="chart-tabs" class="flex gap-1 bg-slate-100 p-1 rounded-xl text-[10px] font-bold w-full sm:w-auto justify-between">
+                            <button onclick="switchChartMetric('TX')" id="tab-TX" class="px-2 py-1 rounded-lg transition-colors bg-white text-slate-800 shadow-sm">Max Temp</button>
+                            <button onclick="switchChartMetric('TN')" id="tab-TN" class="px-2 py-1 rounded-lg transition-colors text-slate-600 hover:text-slate-900">Min Temp</button>
+                            <button onclick="switchChartMetric('SQ')" id="tab-SQ" class="px-2 py-1 rounded-lg transition-colors text-slate-600 hover:text-slate-900">Zonuren</button>
+                            <button onclick="switchChartMetric('RH')" id="tab-RH" class="px-2 py-1 rounded-lg transition-colors text-slate-600 hover:text-slate-900">Neerslagsom</button>
+                        </div>
+                    </div>
+                    <div class="w-full h-48 relative">
+                        <canvas id="historyChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script>
+        // ==================== CONFIGURATION ====================
+        const backgroundRules = [
+            { startWeek: 48, endWeek: 7, label: 'Winter', color: 'from-blue-600 to-indigo-800', unsp: 'https://images.unsplash.com/photo-1418985991508-e47386d96a71?auto=format&fit=crop&w=1920&q=80' },
+            { startWeek: 8, endWeek: 21, label: 'Lente', color: 'from-emerald-500 to-green-700', unsp: 'https://images.unsplash.com/photo-1462275646964-a0e3386b89fa?auto=format&fit=crop&w=1920&q=80' },
+            { startWeek: 22, endWeek: 35, label: 'Zomer', color: 'from-amber-500 to-orange-600', unsp: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1920&q=80' },
+            { startWeek: 36, endWeek: 47, label: 'Herfst', color: 'from-amber-700 to-stone-800', unsp: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1920&q=80' }
+        ];
+
+        const stationCoordinates = {
+            235: { name: "De Kooy", lat: 52.921, lon: 4.781 },
+            249: { name: "Berkhout", lat: 52.644, lon: 4.979 },
+            251: { name: "Hoorn Terschelling", lat: 53.393, lon: 5.346 },
+            257: { name: "Wijk aan Zee", lat: 52.506, lon: 4.603 },
+            260: { name: "De Bilt", lat: 52.100, lon: 5.177 },
+            269: { name: "Lelystad", lat: 52.458, lon: 5.520 },
+            270: { name: "Leeuwarden", lat: 53.224, lon: 5.751 },
+            273: { name: "Marknesse", lat: 52.703, lon: 5.888 },
+            275: { name: "Deelen", lat: 52.056, lon: 5.873 },
+            277: { name: "Lauwersoog", lat: 53.413, lon: 6.200 },
+            278: { name: "Heino", lat: 52.435, lon: 6.260 },
+            279: { name: "Hoogeveen", lat: 52.750, lon: 6.520 },
+            280: { name: "Groningen Airport Eelde", lat: 53.117, lon: 6.583 },
+            283: { name: "Hupsel", lat: 52.069, lon: 6.653 },
+            286: { name: "Nieuw Beerta", lat: 53.196, lon: 7.150 },
+            290: { name: "Twenthe", lat: 52.274, lon: 6.891 },
+            310: { name: "Vlissingen", lat: 51.442, lon: 3.596 },
+            330: { name: "Hoek van Holland", lat: 51.993, lon: 4.122 },
+            340: { name: "Woensdrecht Airport", lat: 51.448, lon: 4.342 },
+            344: { name: "Rotterdam", lat: 51.944, lon: 4.437 },
+            348: { name: "Cabouw", lat: 51.971, lon: 4.926 },
+            350: { name: "Gilze-Rijen", lat: 51.566, lon: 4.936 },
+            356: { name: "Herwijnen (Rumpt)", lat: 51.859, lon: 5.146 },
+            370: { name: "Eindhoven Airport", lat: 51.450, lon: 5.375 },
+            375: { name: "Volkel", lat: 51.659, lon: 5.707 },
+            380: { name: "Maastricht", lat: 50.911, lon: 5.770 },
+            392: { name: "Arcen", lat: 51.498, lon: 6.196 }
+        };
+
+        const metricInfoTexts = {
+            TX: { icon: "🔥", text: "Prognose van de maximale dagtemperatuur op basis van historische opwarmingscurven." },
+            TN: { icon: "❄️", text: "Prognose van de laagste nachttemperatuur om eventuele vorstperiodes of zachte nachten in kaart te brengen." },
+            SQ: { icon: "☀️", text: "Verwachte zonneschijn in uren per dag, berekend uit de historische bewolkingspatronen." },
+            RH: { icon: "🌤️", text: "De kans dat een kalenderdag volledig droog blijft." }
+        };
+
+        // ==================== GLOBAL STATE ====================
+        let climateData = [];
+        let activeStations = new Set();
+        let currentMetric = 'TX';
+        let map = null;
+        let stationMarkers = {};
+        let targetMarker = null;
+        let clickedLocation = null;
+        let isRumptFocusMode = true;
+        let detailChart = null;
+        let cachedModalRawData = null;
+        let currentChartMetric = 'TX';
+        let dataLoadingPromise = null;
+
+        // ==================== KNMI CSV PARSING ====================
+        
+        /**
+         * Parse KNMI CSV file format (etmgeg_XXX.txt)
+         * Format: Header on line 52, values in 0.1 units, -1 indicates <0.05
+         * Returns array of data objects with parsed values
+         */
+        function parseKNMICSV(content, stationId) {
+            const lines = content.split('\n');
+            if (lines.length < 53) {
+                console.warn(`Station ${stationId}: CSV file too short`);
+                return [];
+            }
+            
+            // Find header line (should be line 52, index 51)
+            let headerLineIndex = 51;
+            for (let i = 50; i < Math.min(60, lines.length); i++) {
+                if (lines[i].startsWith('STN') || lines[i].includes('YYYYMMDD')) {
+                    headerLineIndex = i;
+                    break;
+                }
+            }
+            
+            const headerLine = lines[headerLineIndex];
+            if (!headerLine || !headerLine.includes('STN')) {
+                console.warn(`Station ${stationId}: Could not find header line`);
+                return [];
+            }
+            
+            const headers = headerLine.split(',').map(h => h.trim().replace(/^"|"$/g, ''));
+            const data = [];
+            
+            // Parse data lines (starting from headerLineIndex + 1)
+            for (let i = headerLineIndex + 1; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (!line) continue;
+                
+                const values = line.split(',').map(v => v.trim().replace(/^"|"$/g, ''));
+                if (values.length !== headers.length) continue;
+                
+                const row = {};
+                for (let j = 0; j < headers.length; j++) {
+                    const header = headers[j];
+                    const value = values[j];
+                    
+                    // Parse numeric values
+                    if (header === 'STN') {
+                        row[header] = parseInt(value, 10);
+                    } else if (header === 'YYYYMMDD') {
+                        row[header] = value;
+                    } else if (!isNaN(parseFloat(value)) && isFinite(value)) {
+                        const numValue = parseFloat(value);
+                        // KNMI uses -1 to indicate <0.05, convert to 0.04 for these cases
+                        // Values are in 0.1 units, so multiply by 0.1
+                        row[header] = numValue === -1 ? 0.04 : numValue * 0.1;
+                    } else {
+                        row[header] = value;
+                    }
+                }
+                
+                // Only include valid rows with date
+                if (row.STN && row.YYYYMMDD) {
+                    const dateStr = row.YYYYMMDD.toString();
+                    const year = parseInt(dateStr.substring(0, 4), 10);
+                    const month = parseInt(dateStr.substring(4, 6), 10);
+                    const day = parseInt(dateStr.substring(6, 8), 10);
+                    
+                    // Only include years 1996-2026
+                    if (year >= 1996 && year <= 2026) {
+                        row.year = year;
+                        row.month = month;
+                        row.day = day;
+                        data.push(row);
+                    }
+                }
+            }
+            
+            return data;
+        }
+
+        // ==================== DATA LOADING ====================
+        
+        /**
+         * Load all station CSV files and parse them
+         * Tries to fetch from local directory first, then falls back to demo data
+         */
+        async function loadAllStationData() {
+            if (dataLoadingPromise) {
+                return dataLoadingPromise;
+            }
+            
+            dataLoadingPromise = new Promise(async (resolve, reject) => {
+                try {
+                    console.log('Starting to load KNMI station data...');
+                    const allData = [];
+                    const stationIds = Object.keys(stationCoordinates).map(Number);
+                    
+                    // List of all expected station files
+                    const stationFiles = [
+                        235, 249, 251, 257, 260, 269, 270, 273, 275, 277, 278, 279, 280,
+                        283, 286, 290, 310, 330, 340, 344, 348, 350, 356, 370, 375, 380, 392
+                    ];
+                    
+                    // Try to fetch each CSV file
+                    const loadPromises = stationFiles.map(async (stationId) => {
+                        try {
+                            // Try to fetch from local path
+                            const response = await fetch(`https://danielvdneut.github.io/knmi-dashboard/etmgeg_${stationId}.txt`);
+                            if (response.ok) {
+                                const content = await response.text();
+                                const parsedData = parseKNMICSV(content, stationId);
+                                console.log(`Loaded station ${stationId}: ${parsedData.length} records`);
+                                return parsedData;
+                            }
+                        } catch (error) {
+                            console.warn(`Failed to load etmgeg_${stationId}.txt:`, error.message);
+                        }
+                        return [];
+                    });
+                    
+                    const results = await Promise.all(loadPromises);
+                    
+                    // Flatten all results
+                    for (const stationData of results) {
+                        allData.push(...stationData);
+                    }
+                    
+                    if (allData.length > 0) {
+                        console.log(`Successfully loaded ${allData.length} total records from CSV files`);
+                        climateData = allData;
+                        resolve(allData);
+                    } else {
+                        console.warn('No CSV files loaded, falling back to demo data');
+                        // Fall back to demo data
+                        generateDemoData();
+                        resolve(climateData);
+                    }
+                } catch (error) {
+                    console.error('Error loading station data:', error);
+                    generateDemoData();
+                    resolve(climateData);
+                }
+            });
+            
+            return dataLoadingPromise;
+        }
+
+        /**
+         * Fallback demo data generator (removed toggle, automatic based on location)
+         */
+        function generateDemoData() {
+            const data = [];
+            for (let year = 1996; year <= 2026; year++) {
+                const warming = (year - 1996) * 0.04;
+                for (let month = 1; month <= 12; month++) {
+                    if (year === 2026 && month > 6) break;
+                    const days = new Date(year, month, 0).getDate();
+                    for (let day = 1; day <= days; day++) {
+                        if (year === 2026 && month === 6 && day > 20) break;
+                        const dayOfYear = month * 30 + day;
+                        const cosFactor = Math.cos((dayOfYear - 195) * 2 * Math.PI / 365);
+                        const knmiDateString = `${year}${month.toString().padStart(2, '0')}${day.toString().padStart(2, '0')}`;
+                        
+                        Object.keys(stationCoordinates).forEach(stn => {
+                            const id = parseInt(stn);
+                            const tx = 12 + (12 * cosFactor) + warming + (Math.random() * 6 - 3);
+                            const tn = 4 + (8 * cosFactor) + (Math.random() * 4 - 2);
+                            const sq = Math.max(0, 6 + (5 * cosFactor) + (Math.random() * 6 - 3));
+                            const isDry = Math.random() > (0.45 - (cosFactor * 0.15));
+                            const rh = isDry ? 0 : parseFloat((Math.random() * 12 + 0.1).toFixed(1));
+                            const dr = isDry ? 0 : parseFloat((Math.random() * 6 + 0.1).toFixed(1));
+                            const rhx = isDry ? 0 : parseFloat((Math.random() * rh).toFixed(1));
+                            
+                            data.push({
+                                STN: id,
+                                YYYYMMDD: knmiDateString,
+                                year,
+                                month,
+                                day,
+                                TX: parseFloat(tx.toFixed(1)),
+                                TN: parseFloat(tn.toFixed(1)),
+                                SQ: parseFloat(sq.toFixed(1)),
+                                RH: rh,
+                                DR: dr,
+                                RHX: rhx
+                            });
+                        });
+                    }
+                }
+            }
+            climateData = data;
+        }
+
+        // ==================== ARIMA PREDICTION ====================
+        
+        function predictArimaYear31(values) {
+            if (values.length < 5) return 0;
+            const n = values.length;
+            let sumX = 0, sumY = 0, sumXY = 0, sumXX = 0;
+            for (let i = 0; i < n; i++) {
+                sumX += i;
+                sumY += values[i];
+                sumXY += i * values[i];
+                sumXX += i * i;
+            }
+            const slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
+            const intercept = (sumY - slope * sumX) / n;
+            const trendNextYear = intercept + slope * n;
+            
+            let num = 0, den = 0;
+            const avg = sumY / n;
+            for (let i = 1; i < n; i++) {
+                num += (values[i] - avg) * (values[i-1] - avg);
+                den += Math.pow(values[i-1] - avg, 2);
+            }
+            const phi = den === 0 ? 0 : Math.max(-0.7, Math.min(0.7, num / den));
+            const trendLastYear = intercept + slope * (n - 1);
+            const lastActualValue = values[n - 1];
+            const lastResidual = lastActualValue - trendLastYear;
+            
+            return parseFloat((trendNextYear + (phi * lastResidual)).toFixed(1));
+        }
+
+        // ==================== IDW INTERPOLATION ====================
+        
+        function calculateMapIDW(filteredRows, metric) {
+            let totalWeight = 0, weightedSum = 0;
+            filteredRows.forEach(row => {
+                const coord = stationCoordinates[row.STN];
+                if (!coord) return;
+                const dLat = (clickedLocation ? clickedLocation.lat : 51.891) - coord.lat;
+                const dLon = (clickedLocation ? clickedLocation.lon : 5.178) - coord.lon;
+                let distance = Math.sqrt(dLat * dLat + dLon * dLon);
+                if (distance < 0.02) distance = 0.02;
+                const weight = 1 / Math.pow(distance, 2);
+                const val = row[metric];
+                if (val !== undefined && !isNaN(val)) {
+                    weightedSum += val * weight;
+                    totalWeight += weight;
+                }
+            });
+            return totalWeight === 0 ? 0 : parseFloat((weightedSum / totalWeight).toFixed(1));
+        }
+
+        // ==================== DATA AGGREGATION ====================
+        
+        function getAggregatedDataForDay(month, day) {
+            if (climateData.length === 0) {
+                return { TX: 0, TN: 0, SQ: 0, RH: 0, dryDayProbability: 100, rainDuration: 0, heavyRainProb: 0 };
+            }
+            
+            const maxYear = Math.max(...climateData.map(d => d.year || 2026));
+            
+            // For Rumpt (station 356), use ARIMA prediction
+            // For other locations, use IDW interpolation
+            let filtered = isRumptFocusMode
+                ? climateData.filter(d => d.STN === 356 && d.month === month && d.day === day && d.year >= (maxYear - 30))
+                : climateData.filter(d => activeStations.has(d.STN) && d.month === month && d.day === day && d.year >= (maxYear - 30));
+            
+            if (filtered.length === 0) {
+                return { TX: 0, TN: 0, SQ: 0, RH: 0, dryDayProbability: 100, rainDuration: 0, heavyRainProb: 0 };
+            }
+            
+            // For clicked location (not Rumpt), use IDW interpolation
+            if (clickedLocation && !isRumptFocusMode) {
+                const rawDryProb = calculateMapIDW(
+                    filtered.map(f => ({...f, RH: f.RH <= 0 ? 100 : 0})), 
+                    'RH'
+                );
+                return {
+                    TX: calculateMapIDW(filtered, 'TX'),
+                    TN: calculateMapIDW(filtered, 'TN'),
+                    SQ: calculateMapIDW(filtered, 'SQ'),
+                    RH: rawDryProb,
+                    dryDayProbability: rawDryProb,
+                    rainDuration: calculateMapIDW(filtered, 'DR'),
+                    rainAmountIfWet: calculateMapIDW(filtered, 'RH'),
+                    heavyRainProb: calculateMapIDW(
+                        filtered.map(f => ({...f, RHX: f.RHX >= 5 ? 100 : 0})), 
+                        'RHX'
+                    ),
+                    _rawFilteredData: filtered
+                };
+            }
+            
+            // For Rumpt, use ARIMA prediction
+            const yearlyData = {};
+            filtered.forEach(d => {
+                if (!yearlyData[d.year]) {
+                    yearlyData[d.year] = { TX: [], TN: [], SQ: [], RH: [], DR: [], RHX: [] };
+                }
+                yearlyData[d.year].TX.push(d.TX || 0);
+                yearlyData[d.year].TN.push(d.TN || 0);
+                yearlyData[d.year].SQ.push(d.SQ || 0);
+                yearlyData[d.year].RH.push(d.RH || 0);
+                yearlyData[d.year].DR.push(d.DR || 0);
+                yearlyData[d.year].RHX.push(d.RHX || 0);
+            });
+            
+            const sortedYears = Object.keys(yearlyData).map(Number).sort((a, b) => a - b);
+            const txTimeline = sortedYears.map(yr => getAverage(yearlyData[yr].TX));
+            const tnTimeline = sortedYears.map(yr => getAverage(yearlyData[yr].TN));
+            const sqTimeline = sortedYears.map(yr => getAverage(yearlyData[yr].SQ));
+            const dryDaysTimeline = sortedYears.map(yr => (getAverage(yearlyData[yr].RH) <= 0) ? 100 : 0);
+            const rainAmountTimeline = sortedYears.map(yr => getAverage(yearlyData[yr].RH));
+            const drTimeline = sortedYears.map(yr => getAverage(yearlyData[yr].DR));
+            const heavyRainTimeline = sortedYears.map(yr => yearlyData[yr].RHX.some(val => val >= 5) ? 100 : 0);
+            
+            return {
+                TX: predictArimaYear31(txTimeline),
+                TN: predictArimaYear31(tnTimeline),
+                SQ: predictArimaYear31(sqTimeline),
+                RH: Math.max(0, Math.min(100, predictArimaYear31(dryDaysTimeline))),
+                dryDayProbability: Math.max(0, Math.min(100, predictArimaYear31(dryDaysTimeline))),
+                rainDuration: Math.max(0, predictArimaYear31(drTimeline)),
+                rainAmountIfWet: Math.max(0, predictArimaYear31(rainAmountTimeline)),
+                heavyRainProb: Math.max(0, Math.min(100, predictArimaYear31(heavyRainTimeline))),
+                _rawFilteredData: filtered
+            };
+        }
+
+        // ==================== UI FUNCTIONS ====================
+        
+        function getAverage(values) {
+            return values.length === 0 ? 0 : values.reduce((a, b) => a + b, 0) / values.length;
+        }
+
+        function getCurrentWeek() {
+            const today = new Date();
+            const d = new Date(Date.UTC(today.getFullYear(), today.getMonth(), today.getDate()));
+            const dayNum = d.getUTCDay() || 7;
+            d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+            const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+            return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+        }
+
+        function applyBackgroundForWeek(week) {
+            let activeRule = backgroundRules[0];
+            for (const rule of backgroundRules) {
+                if (rule.startWeek <= rule.endWeek) {
+                    if (week >= rule.startWeek && week <= rule.endWeek) {
+                        activeRule = rule;
+                        break;
+                    }
+                } else {
+                    if (week >= rule.startWeek || week <= rule.endWeek) {
+                        activeRule = rule;
+                        break;
+                    }
+                }
+            }
+            const imgUrl = activeRule.unsp;
+            const imgLoader = new Image();
+            imgLoader.src = imgUrl;
+            imgLoader.onload = () => {
+                document.body.style.backgroundImage = `linear-gradient(rgba(15, 23, 42, 0.1), rgba(15, 23, 42, 0.15)), url('${imgUrl}')`;
+            };
+            const badge = document.getElementById('season-tag');
+            badge.textContent = activeRule.label;
+            badge.className = `px-3 py-1 rounded-full text-xs font-bold shadow-sm border text-white bg-gradient-to-r ${activeRule.color}`;
+        }
+
+        function initLeafletMap() {
+            map = L.map('map', { center: [52.2, 5.5], zoom: 7, minZoom: 6, maxZoom: 11, zoomControl: false });
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+                attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
+            }).addTo(map);
+            L.control.zoom({ position: 'bottomright' }).addTo(map);
+            renderMapMarkers();
+            map.on('click', function(e) {
+                isRumptFocusMode = false;
+                setTargetLocation(e.latlng.lat, e.latlng.lng);
+            });
+            // Fit bounds to show all of Netherlands
+            const nlBounds = L.latLngBounds([50.7, 3.3], [53.7, 7.2]);
+            map.fitBounds(nlBounds);
+        }
+
+        function renderMapMarkers() {
+            Object.values(stationMarkers).forEach(m => map.removeLayer(m));
+            stationMarkers = {};
+            Object.keys(stationCoordinates).forEach(stn => {
+                const coord = stationCoordinates[stn];
+                const isHerwijnen = parseInt(stn) === 356;
+                const markerHtml = `<div style="background-color: ${isHerwijnen ? '#2563eb' : '#a855f7'}; width: 10px; height: 10px; border-radius: 50%; border: 2px solid white; box-shadow: 0 1px 3px rgba(0,0,0,0.3);"></div>`;
+                const customIcon = L.divIcon({
+                    html: markerHtml,
+                    className: 'custom-station-icon',
+                    iconSize: [10, 10],
+                    iconAnchor: [5, 5]
+                });
+                const marker = L.marker([coord.lat, coord.lon], { icon: customIcon }).addTo(map);
+                marker.bindTooltip(`<b>${coord.name}</b><br/>Station ${stn}`, {
+                    direction: 'top',
+                    offset: [0, -5]
+                });
+                stationMarkers[stn] = marker;
+            });
+        }
+
+        function setTargetLocation(lat, lon) {
+            clickedLocation = { lat, lon };
+            if (targetMarker) {
+                targetMarker.setLatLng([lat, lon]);
+            } else {
+                const targetIcon = L.divIcon({
+                    html: `<span style="font-size: 24px; position: absolute; top: -24px; left: -12px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4));">📍</span>`,
+                    className: 'custom-target-icon',
+                    iconSize: [24, 24]
+                });
+                targetMarker = L.marker([lat, lon], { icon: targetIcon }).addTo(map);
+            }
+            updateInstructionText();
+            renderCalendar();
+        }
+
+        function positionRumptMarker() {
+            if (targetMarker) {
+                targetMarker.setLatLng([51.891, 5.178]);
+            } else {
+                const targetIcon = L.divIcon({
+                    html: `<span style="font-size: 24px; position: absolute; top: -24px; left: -12px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4));">📍</span>`,
+                    className: 'custom-target-icon',
+                    iconSize: [24, 24]
+                });
+                targetMarker = L.marker([51.891, 5.178], { icon: targetIcon }).addTo(map);
+            }
+        }
+
+        function resetToRumpt() {
+            isRumptFocusMode = true;
+            clickedLocation = null;
+            positionRumptMarker();
+            map.panTo([51.891, 5.178]);
+            updateInstructionText();
+            renderCalendar();
+        }
+
+        function updateInstructionText() {
+            const instr = document.getElementById('dashboard-instruction-text');
+            if (isRumptFocusMode) {
+                instr.innerHTML = `📍 <strong>Basisstation Rumpt:</strong> Gekoppeld via ARIMA(1,0,0) Model.`;
+            } else if (clickedLocation) {
+                instr.innerHTML = `🌍 <strong>Vrije Locatie:</strong> IDW 30-jarig Gemiddelde omliggende stations.`;
+            }
+        }
+
+        function updateMetricDescription() {
+            const info = metricInfoTexts[currentMetric];
+            document.getElementById('dynamic-info-icon').textContent = info.icon;
+            const buttonText = document.querySelector(`[data-metric="${currentMetric}"] span`).textContent;
+            const cleanText = buttonText.replace(/^[^\s]+\s*/, '');
+            document.getElementById('dynamic-info-text').innerHTML = `<strong>${cleanText}:</strong> ${info.text}`;
+        }
+
+        function setupMetricListeners() {
+            const buttons = document.querySelectorAll('.metric-btn');
+            buttons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    buttons.forEach(b => {
+                        b.classList.remove('bg-blue-600', 'text-white');
+                        b.classList.add('bg-white', 'text-slate-700', 'border');
+                    });
+                    btn.classList.add('bg-blue-600', 'text-white');
+                    btn.classList.remove('bg-white', 'text-slate-700', 'border');
+                    currentMetric = btn.dataset.metric;
+                    updateMetricDescription();
+                    renderCalendar();
+                    updateLegend();
+                });
+            });
+            updateLegend();
+        }
+
+        function updateLegend() {
+            const legendMin = document.getElementById('legend-min');
+            const legendMax = document.getElementById('legend-max');
+            const gradient = document.getElementById('legend-gradient');
+            
+            if (currentMetric === 'TX' || currentMetric === 'TN') {
+                legendMin.textContent = '-5 °C';
+                legendMax.textContent = '28 °C';
+                gradient.className = "w-32 h-3 rounded-full bg-gradient-to-r from-blue-500 via-yellow-100 to-red-600";
+            } else if (currentMetric === 'SQ') {
+                legendMin.textContent = '0 uur';
+                legendMax.textContent = '14 uur';
+                gradient.className = "w-32 h-3 rounded-full bg-gradient-to-r from-stone-200 via-yellow-200 to-amber-500";
+            } else if (currentMetric === 'RH') {
+                legendMin.textContent = '0%';
+                legendMax.textContent = '100%';
+                gradient.className = "w-32 h-3 rounded-full bg-gradient-to-r from-indigo-900 via-blue-400 to-sky-100";
+            }
+        }
+
+        function renderCalendar() {
+            const grid = document.getElementById('calendar-grid');
+            grid.innerHTML = '';
+            
+            const monthNames = ["Januari", "Februari", "Maart", "April", "Mei", "Juni", "Juli", "Augustus", "September", "Oktober", "November", "December"];
+            const daysOfWeekLabels = ["Ma", "Di", "Wo", "Do", "Vr", "Za", "Zo"];
+            
+            for (let m = 0; m < 12; m++) {
+                const monthCard = document.createElement('div');
+                monthCard.className = 'glass-panel p-4 rounded-2xl shadow-md border hover:shadow-lg transition-shadow flex flex-col justify-between';
+                
+                const headerDiv = document.createElement('div');
+                headerDiv.className = 'flex justify-between items-center mb-2 pb-2 border-b';
+                
+                const title = document.createElement('h3');
+                title.className = 'font-bold text-slate-800 text-xs flex items-center';
+                title.innerHTML = `${monthNames[m]}`;
+                headerDiv.appendChild(title);
+                
+                const monthlyValues = [];
+                const daysInMonth = new Date(2026, m + 1, 0).getDate();
+                for (let d = 1; d <= daysInMonth; d++) {
+                    monthlyValues.push(getAggregatedDataForDay(m + 1, d));
+                }
+                
+                const activeMetricValues = monthlyValues.map(v => v[currentMetric]);
+                const monthSummaryVal = parseFloat(getAverage(activeMetricValues).toFixed(1));
+                
+                const subStat = document.createElement('span');
+                subStat.className = 'text-[9px] bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded font-bold';
+                subStat.textContent = currentMetric === 'RH' ? `Ø Droog: ${monthSummaryVal}%` : `Ø: ${monthSummaryVal}${getMetricUnit()}`;
+                headerDiv.appendChild(subStat);
+                monthCard.appendChild(headerDiv);
+                
+                const daysHeaderGrid = document.createElement('div');
+                daysHeaderGrid.className = 'grid grid-cols-7 gap-1 text-center mb-1';
+                daysOfWeekLabels.forEach(label => {
+                    const lbl = document.createElement('span');
+                    lbl.className = 'text-[9px] font-extrabold text-slate-400 uppercase';
+                    lbl.textContent = label;
+                    daysHeaderGrid.appendChild(lbl);
+                });
+                monthCard.appendChild(daysHeaderGrid);
+                
+                const daysGrid = document.createElement('div');
+                daysGrid.className = 'grid grid-cols-7 gap-1 text-center';
+                
+                const firstDayIndex = (new Date(2026, m, 1).getDay() + 6) % 7;
+                for (let i = 0; i < firstDayIndex; i++) {
+                    const emptyCell = document.createElement('div');
+                    emptyCell.className = 'aspect-square';
+                    daysGrid.appendChild(emptyCell);
+                }
+                
+                for (let d = 1; d <= daysInMonth; d++) {
+                    const stats = monthlyValues[d - 1];
+                    const val = stats[currentMetric];
+                    
+                    const dayCell = document.createElement('button');
+                    dayCell.className = 'aspect-square rounded-lg flex items-center justify-center text-xs font-bold transition-all relative group hover:scale-110 shadow-sm border border-black/5';
+                    dayCell.style.backgroundColor = getColorForValue(val);
+                    dayCell.style.color = getTextColorForBackground(val);
+                    dayCell.innerHTML = `<span>${d}</span>`;
+                    
+                    const tooltip = document.createElement('div');
+                    tooltip.className = 'absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-slate-900 text-white text-[10px] rounded shadow-xl pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity z-10 whitespace-nowrap';
+                    tooltip.innerHTML = currentMetric === 'RH' 
+                        ? `${d} ${monthNames[m]}<br/><strong>${val}% Droog</strong>` 
+                        : `${d} ${monthNames[m]}<br/><strong>${val}${getMetricUnit()}</strong>`;
+                    
+                    dayCell.appendChild(tooltip);
+                    dayCell.addEventListener('click', () => {
+                        openDayDetail(m + 1, d, stats, monthNames[m]);
+                    });
+                    daysGrid.appendChild(dayCell);
+                }
+                
+                monthCard.appendChild(daysGrid);
+                grid.appendChild(monthCard);
+            }
+        }
+
+        function getMetricUnit() {
+            if (currentMetric === 'TX' || currentMetric === 'TN') return '°C';
+            if (currentMetric === 'SQ') return 'u';
+            return '%';
+        }
+
+        function getColorForValue(val) {
+            if (currentMetric === 'TX' || currentMetric === 'TN') {
+                const min = -5;
+                const max = 28;
+                const percent = Math.min(100, Math.max(0, ((val - min) / (max - min)) * 100));
+                if (percent < 30) return `rgba(59, 130, 246, ${0.1 + ((percent / 30) * 0.9)})`;
+                else if (percent < 70) return `rgba(245, 158, 11, ${0.2 + (((percent - 30) / 40) * 0.8)})`;
+                return `rgba(239, 68, 68, ${0.4 + (((percent - 70) / 30) * 0.6)})`;
+            } else if (currentMetric === 'SQ') {
+                return `rgba(251, 191, 36, ${0.05 + (Math.min(1, val / 12) * 0.95)})`;
+            } else if (currentMetric === 'RH') {
+                const p = Math.min(100, Math.max(0, val));
+                return `rgba(30, 58, 138, ${1 - (p / 100)})`;
+            }
+            return 'rgba(255,255,255,0.9)';
+        }
+
+        function getTextColorForBackground(val) {
+            if (currentMetric === 'TX' || currentMetric === 'TN') return val > 22 || val < -2 ? '#ffffff' : '#1e293b';
+            if (currentMetric === 'RH') return val < 40 ? '#ffffff' : '#1e293b';
+            return '#1e293b';
+        }
+
+        // ==================== MODAL FUNCTIONS ====================
+        
+        function openDayDetail(month, day, stats, monthName) {
+            document.getElementById('modal-date-title').textContent = `${day} ${monthName}`;
+            document.getElementById('modal-tx').textContent = `${stats.TX} °C`;
+            document.getElementById('modal-tn').textContent = `${stats.TN} °C`;
+            document.getElementById('modal-sq').textContent = `${stats.SQ} uur`;
+            const dryProb = Math.round(stats.dryDayProbability);
+            document.getElementById('modal-dry-prob').textContent = `${dryProb}%`;
+            document.getElementById('modal-rain-prob').textContent = `${100 - dryProb}%`;
+            document.getElementById('modal-dr').textContent = `${stats.rainDuration.toFixed(1)} uur`;
+            document.getElementById('rain-amount').textContent = `${stats.rainAmountIfWet.toFixed(1)} mm`;
+            document.getElementById('modal-heavy-prob').textContent = `${Math.round(stats.heavyRainProb)}%`;
+            
+            cachedModalRawData = stats._rawFilteredData;
+            currentChartMetric = currentMetric;
+            updateTabHighlight();
+            buildHistoricalChart();
+            document.getElementById('day-detail-modal').classList.remove('hidden');
+        }
+
+        function switchChartMetric(metric) {
+            currentChartMetric = metric;
+            updateTabHighlight();
+            buildHistoricalChart();
+        }
+
+        function updateTabHighlight() {
+            ['TX', 'TN', 'SQ', 'RH'].forEach(m => {
+                const tab = document.getElementById(`tab-${m}`);
+                tab.className = (m === currentChartMetric)
+                    ? "px-2 py-1 rounded-lg transition-colors bg-white text-slate-800 shadow-sm"
+                    : "px-2 py-1 rounded-lg transition-colors text-slate-600 hover:text-slate-900";
+            });
+        }
+
+        function buildHistoricalChart() {
+            if (!cachedModalRawData || cachedModalRawData.length === 0) return;
+            
+            const yearlyMap = {};
+            cachedModalRawData.forEach(row => {
+                if (!yearlyMap[row.year]) yearlyMap[row.year] = [];
+                yearlyMap[row.year].push({ val: row[currentChartMetric], stn: row.STN });
+            });
+            
+            const years = Object.keys(yearlyMap).map(Number).sort((a, b) => a - b);
+            const chartDataValues = years.map(yr => {
+                const items = yearlyMap[yr];
+                if (clickedLocation && !isRumptFocusMode) {
+                    let totalWeight = 0, weightedSum = 0;
+                    items.forEach(item => {
+                        const coord = stationCoordinates[item.stn];
+                        if (!coord) return;
+                        const dLat = clickedLocation.lat - coord.lat;
+                        const dLon = clickedLocation.lon - coord.lon;
+                        let distance = Math.sqrt(dLat * dLat + dLon * dLon);
+                        if (distance < 0.02) distance = 0.02;
+                        const weight = 1 / Math.pow(distance, 2);
+                        weightedSum += item.val * weight;
+                        totalWeight += weight;
+                    });
+                    return totalWeight === 0 ? 0 : parseFloat((weightedSum / totalWeight).toFixed(1));
+                } else {
+                    return parseFloat(getAverage(items.map(i => i.val)).toFixed(1));
+                }
+            });
+            
+            if (detailChart) {
+                detailChart.destroy();
+            }
+            
+            let labelName = "Max Temp (°C)";
+            let borderColor = "#f59e0b";
+            let bgColor = "rgba(245, 158, 11, 0.1)";
+            if (currentChartMetric === 'TN') {
+                labelName = "Min Temp (°C)";
+                borderColor = "#3b82f6";
+                bgColor = "rgba(59, 130, 246, 0.1)";
+            } else if (currentChartMetric === 'SQ') {
+                labelName = "Zonuren (uur)";
+                borderColor = "#eab308";
+                bgColor = "rgba(234, 179, 8, 0.1)";
+            } else if (currentChartMetric === 'RH') {
+                labelName = "Neerslagsom (mm)";
+                borderColor = "#4f46e5";
+                bgColor = "rgba(79, 70, 229, 0.1)";
+            }
+            
+            const ctx = document.getElementById('historyChart').getContext('2d');
+            detailChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: years,
+                    datasets: [{
+                        label: labelName,
+                        data: chartDataValues,
+                        borderColor: borderColor,
+                        backgroundColor: bgColor,
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.15,
+                        pointRadius: 3,
+                        pointHoverRadius: 5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { grid: { display: false }, ticks: { font: { size: 9 } } },
+                        y: { grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { font: { size: 9 } } }
+                    }
+                }
+            });
+        }
+
+        function closeDayDetail() {
+            document.getElementById('day-detail-modal').classList.add('hidden');
+        }
+
+        function setupModalClosing() {
+            const modal = document.getElementById('day-detail-modal');
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) closeDayDetail();
+            });
+            window.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') closeDayDetail();
+            });
+        }
+
+        // ==================== INITIALIZATION ====================
+        
+        window.addEventListener('DOMContentLoaded', async function() {
+            const currentWeek = getCurrentWeek();
+            document.getElementById('current-week-display').textContent = currentWeek;
+            applyBackgroundForWeek(currentWeek);
+            
+            activeStations = new Set(Object.keys(stationCoordinates).map(Number));
+            
+            // Initialize map
+            initLeafletMap();
+            
+            // Load real KNMI data (will fall back to demo data if files not available)
+            await loadAllStationData();
+            
+            // Initialize UI
+            updateMetricDescription();
+            updateDashboard();
+            setupMetricListeners();
+            setupModalClosing();
+            positionRumptMarker();
+        });
+
+        function updateDashboard() {
+            renderCalendar();
+            updateInstructionText();
+        }
+    </script>
+</body>
+</html>
