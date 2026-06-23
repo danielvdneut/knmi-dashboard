@@ -3,928 +3,419 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Persoonlijk KNMI Dashboard - BERGNEUT</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <title>KNMI Weerdata Dashboard</title>
     <style>
-        .glass-panel {
-            background: rgba(255, 255, 255, 0.88);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.5);
-        }
         body {
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            background-attachment: fixed;
-            transition: background-image 1s ease-in-out;
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
         }
-        #map { width: 100%; height: 100%; border-radius: 1rem; z-index: 10; }
-        .calendar-grid {
-            display: grid;
-            grid-template-columns: repeat(53, minmax(0, 1fr));
-            gap: 3px;
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
-        .day-cell {
-            aspect-ratio: 1;
-            border-radius: 2px;
-            transition: all 0.15s ease;
+        .controls {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        select, button {
+            padding: 8px 12px;
+            font-size: 14px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
             cursor: pointer;
         }
-        .day-cell:hover {
-            transform: scale(1.3);
-            z-index: 20;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        button:hover {
+            background-color: #0056b3;
         }
-        .legend-cell {
-            width: 14px;
-            height: 14px;
+        .calendar-container {
+            overflow-x: auto;
+            margin-top: 20px;
+        }
+        .year-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 3px;
+        }
+        .year-label {
+            width: 50px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        .days-container {
+            display: flex;
+            gap: 2px;
+        }
+        .day-block {
+            width: 12px;
+            height: 12px;
+            background-color: #eeeeee;
+            border-radius: 1px;
+            cursor: pointer;
+            position: relative;
+        }
+        .day-block:hover {
+            transform: scale(1.3);
+            z-index: 10;
+            box-shadow: 0 0 4px rgba(0,0,0,0.3);
+        }
+        .legend {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            align-items: center;
+            font-size: 12px;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .legend-color {
+            width: 15px;
+            height: 15px;
             border-radius: 2px;
+        }
+        .tooltip {
+            position: absolute;
+            background: #333;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            z-index: 100;
+            white-space: nowrap;
+            pointer-events: none;
+            display: none;
+        }
+        #details {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #e9ecef;
+            border-radius: 4px;
+            display: none;
         }
     </style>
 </head>
-<body class="bg-slate-900 min-h-screen text-slate-800 font-sans p-4 md:p-6 lg:p-8">
+<body>
 
-    <header class="max-w-7xl mx-auto mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center p-6 glass-panel rounded-2xl shadow-xl gap-4">
-        <div>
-            <h1 class="text-2xl md:text-3xl font-black tracking-tight text-slate-900">PERSOONLIJK <span class="text-amber-500">KNMI</span> DASHBOARD</h1>
-            <p class="text-sm text-slate-500 font-medium mt-1">Geavanceerde klimaatinterpolatie voor de locatie Rumpt (4156 AL)</p>
-        </div>
-        <div class="flex items-center gap-3 bg-slate-100 px-4 py-2 rounded-xl border border-slate-200">
-            <span class="w-3 height-3 rounded-full bg-emerald-500 animate-pulse"></span>
-            <div class="text-xs">
-                <p class="font-bold text-slate-700" id="current-week-display">Week --, ----</p>
-                <p class="text-slate-400">Huidige Weekbasis</p>
-            </div>
-        </div>
-    </header>
-
-    <main class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
-        <div class="space-y-6 lg:col-span-1">
-            
-            <section class="glass-panel rounded-2xl p-5 shadow-lg space-y-4">
-                <div class="flex justify-between items-center border-b border-slate-200/60 pb-3">
-                    <h2 class="font-bold text-slate-950 flex items-center gap-2 text-base">
-                        📍 Doellocatie Rumpt
-                    </h2>
-                    <span class="text-[10px] uppercase font-bold bg-amber-100 text-amber-800 px-2 py-0.5 rounded-md">IDW Interpolatie</span>
-                </div>
-                
-                <div class="grid grid-cols-2 gap-3 text-xs">
-                    <div class="bg-slate-50/80 p-3 rounded-xl border border-slate-100">
-                        <p class="text-slate-400 font-medium mb-0.5">Breedtegraad</p>
-                        <p class="font-bold text-slate-800 text-sm">51.8922° N</p>
-                    </div>
-                    <div class="bg-slate-50/80 p-3 rounded-xl border border-slate-100">
-                        <p class="text-slate-400 font-medium mb-0.5">Lengtegraad</p>
-                        <p class="font-bold text-slate-800 text-sm">5.1436° O</p>
-                    </div>
-                </div>
-
-                <div class="space-y-2">
-                    <label class="text-xs font-bold text-slate-500 uppercase tracking-wider block">Klimatologische Variabele</label>
-                    <div class="grid grid-cols-2 gap-2" id="metric-selectors">
-                        <button data-metric="TG" class="metric-btn px-3 py-2.5 rounded-xl border text-xs font-bold text-left transition-all bg-amber-500 text-white border-amber-600 shadow-sm">
-                            🌡️ Gem. Temp
-                        </button>
-                        <button data-metric="TX" class="metric-btn px-3 py-2.5 rounded-xl border text-xs font-bold text-left transition-all bg-white text-slate-600 border-slate-200 hover:bg-slate-50">
-                            🔥 Max Temp
-                        </button>
-                        <button data-metric="TN" class="metric-btn px-3 py-2.5 rounded-xl border text-xs font-bold text-left transition-all bg-white text-slate-600 border-slate-200 hover:bg-slate-50">
-                            ❄️ Min Temp
-                        </button>
-                        <button data-metric="RH" class="metric-btn px-3 py-2.5 rounded-xl border text-xs font-bold text-left transition-all bg-white text-slate-600 border-slate-200 hover:bg-slate-50">
-                            🌧️ Neerslag
-                        </button>
-                        <button data-metric="SQ" class="metric-btn px-3 py-2.5 rounded-xl border text-xs font-bold text-left transition-all bg-white text-slate-600 border-slate-200 hover:bg-slate-50 col-span-2">
-                            ☀️ Zonneschijnduur
-                        </button>
-                    </div>
-                </div>
-
-                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200/60 text-xs text-slate-500 leading-relaxed" id="metric-description">
-                    Gemiddelde etmaaltemperatuur in graden Celsius, berekend via Inverse Distance Weighting op basis van de actieve weerstations.
-                </div>
-            </section>
-
-            <section class="glass-panel rounded-2xl p-5 shadow-lg flex flex-col h-[380px]">
-                <div class="flex justify-between items-center mb-3">
-                    <h3 class="font-bold text-slate-950 text-xs uppercase tracking-wider">KNMI Meetnetwerk & Weging</h3>
-                    <button onclick="toggleAllStations(true)" class="text-[10px] text-blue-600 font-bold hover:underline">Reset Selectie</button>
-                </div>
-                <div class="flex-1 relative border border-slate-200/80 rounded-xl overflow-hidden shadow-inner">
-                    <div id="map"></div>
-                </div>
-                <p class="text-[10px] text-slate-400 mt-2 italic text-center">Klik op stations in de kaart om ze in/uit te sluiten van de IDW-berekening.</p>
-            </section>
-        </div>
-
-        <div class="space-y-6 lg:col-span-2 flex flex-col">
-            
-            <section class="glass-panel rounded-2xl p-6 shadow-lg flex-1 flex flex-col min-w-0">
-                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-200/60 pb-4 mb-4">
-                    <div>
-                        <h2 class="font-black text-slate-900 text-lg flex items-center gap-2">
-                            📅 Historische Klimaatmatrix <span class="text-xs font-normal text-slate-400">(1996 - 2026)</span>
-                        </h2>
-                        <p class="text-xs text-slate-500 mt-0.5" id="instruction-text">Toont de geïnterpoleerde waarden voor Rumpt.</p>
-                    </div>
-                    
-                    <div class="flex flex-col items-end gap-1.5 bg-slate-50/80 p-2.5 rounded-xl border border-slate-100">
-                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Legenda</span>
-                        <div class="flex items-center gap-1 text-[10px] font-semibold text-slate-500" id="matrix-legend">
-                            <span>Min</span>
-                            <div class="legend-cell bg-blue-100"></div>
-                            <div class="legend-cell bg-blue-300"></div>
-                            <div class="legend-cell bg-amber-200"></div>
-                            <div class="legend-cell bg-amber-400"></div>
-                            <div class="legend-cell bg-red-500"></div>
-                            <span>Max</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="flex-1 overflow-x-auto overflow-y-hidden pb-4 select-none relative" id="matrix-scroll-container">
-                    <div class="min-w-[840px] space-y-1 mt-1 pr-2" id="matrix-canvas">
-                        </div>
-                </div>
-                
-                <div class="flex justify-between items-center text-[10px] font-bold text-slate-400 border-t border-slate-100 pt-3 mt-2">
-                    <span class="flex items-center gap-1">◀ Links: Januari</span>
-                    <span>Kolommen vertegenwoordigen Week 1 t/m 53 over de jaarlagen</span>
-                    <span class="flex items-center gap-1">Rechts: December ▶</span>
-                </div>
-            </section>
-        </div>
-    </main>
-
-    <div id="day-detail-modal" class="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 hidden transition-all duration-200">
-        <div class="bg-white rounded-3xl w-full max-w-xl shadow-2xl p-6 relative border border-slate-100 transform scale-95 transition-all">
-            <button onclick="closeDayDetail()" class="absolute top-5 right-5 w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 transition-colors">
-                ✕
-            </button>
-            
-            <div class="mb-5">
-                <span class="text-[10px] font-bold uppercase px-2.5 py-1 bg-blue-50 text-blue-700 rounded-md tracking-wider border border-blue-100" id="modal-week-lbl">Weekbasis --</span>
-                <h3 class="text-xl font-black text-slate-900 mt-2.5" id="modal-date-title">Datum onbekend</h3>
-                <p class="text-xs text-slate-400 mt-0.5">Geïnterpoleerd klimaatprofiel op basis van actieve stationsgegevens</p>
-            </div>
-
-            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6" id="modal-metrics-grid">
-                </div>
-
-            <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100 h-[220px] relative">
-                <canvas id="modal-station-chart"></canvas>
-            </div>
-        </div>
+<div class="container">
+    <h1>KNMI Weerdata Dashboard - Rumpt</h1>
+    
+    <div class="controls">
+        <label for="metric-select">Kies variabele:</label>
+        <select id="metric-select">
+            <option value="TG">Gemiddelde Temperatuur (TG)</option>
+            <option value="TX">Maximum Temperatuur (TX)</option>
+            <option value="TN">Minimum Temperatuur (TN)</option>
+            <option value="RH">Neerslag (RH)</option>
+            <option value="SQ">Zonneschijnduur (SQ)</option>
+        </select>
     </div>
 
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-    <script>
-        // Global State & Configuration Parameters
-        const rumptCoords = { lat: 51.8922, lng: 5.1436 };
-        let activeMetric = 'TG';
-        let climateData = [];
-        let activeStations = new Set();
-        let mapInstance = null;
-        let mapMarkers = {};
-        let modalChartInstance = null;
-        let dataLoadingPromise = null;
+    <div class="calendar-container">
+        <div id="calendar"></div>
+    </div>
 
-        // Active KNMI Weather Stations Configuration Meta
-        const stationCoordinates = {
-            235: { name: "De Kooy", lat: 52.928, lng: 4.789 },
-            249: { name: "Berkhout", lat: 52.644, lng: 4.979 },
-            251: { name: "Hoorn Terschelling", lat: 53.393, lng: 5.346 },
-            257: { name: "Wijk aan Zee", lat: 52.506, lng: 4.603 },
-            260: { name: "De Bilt", lat: 52.100, lng: 5.180 },
-            269: { name: "Lelystad", lat: 52.458, lng: 5.520 },
-            270: { name: "Leeuwarden", lat: 53.224, lng: 5.751 },
-            273: { name: "Marknesse", lat: 52.703, lng: 5.888 },
-            275: { name: "Deelen", lat: 52.056, lng: 5.873 },
-            277: { name: "Lauwersoog", lat: 53.413, lng: 6.200 },
-            278: { name: "Heino", lat: 52.435, lng: 6.260 },
-            279: { name: "Hoogeveen", lat: 52.750, lng: 6.575 },
-            280: { name: "Eelde", lat: 53.125, lng: 6.585 },
-            283: { name: "Hupsel", lat: 52.069, lng: 6.657 },
-            286: { name: "Nieuw Beerta", lat: 53.196, lng: 7.150 },
-            290: { name: "Twenthe", lat: 52.274, lng: 6.891 },
-            310: { name: "Vlissingen", lat: 51.442, lng: 3.596 },
-            330: { name: "Hoek van Holland", lat: 51.993, lng: 4.122 },
-            340: { name: "Woensdrecht", lat: 51.449, lng: 4.342 },
-            344: { name: "Rotterdam", lat: 51.942, lng: 4.437 },
-            348: { name: "Cabauw", lat: 51.971, lng: 4.926 },
-            350: { name: "Gilze-Rijen", lat: 51.566, lng: 4.936 },
-            356: { name: "Herwijnen", lat: 51.859, lng: 5.146 },
-            370: { name: "Eindhoven", lat: 51.451, lng: 5.377 },
-            375: { name: "Volkel", lat: 51.659, lng: 5.707 },
-            380: { name: "Maastricht", lat: 50.911, lng: 5.771 },
-            392: { name: "Arčen", lat: 51.498, lng: 6.195 }
-        };
+    <div class="legend" id="legend"></div>
 
-        const metricMeta = {
-            TG: { title: "Gemiddelde Temp", unit: "°C", desc: "Gemiddelde etmaaltemperatuur in graden Celsius, berekend via IDW-interpolatie.", scheme: 'thermal' },
-            TX: { title: "Maximum Temp", unit: "°C", desc: "Hoogste etmaaltemperatuur in graden Celsius binnen de actieve set weerstations.", scheme: 'thermal' },
-            TN: { title: "Minimum Temp", unit: "°C", desc: "Laagste etmaaltemperatuur in graden Celsius berekend voor de locatie Rumpt.", scheme: 'thermal' },
-            RH: { title: "Etmaalneerslag", unit: "mm", desc: "Geïnterpoleerde dagsom van de neerslag in millimeters (0.1 mm nauwkeurig).", scheme: 'precipitation' },
-            SQ: { title: "Zonneschijnduur", unit: "uur", desc: "Berekende totale aantal uren zonneschijn per etmaal voor de doellocatie.", scheme: 'solar' }
-        };
+    <div id="details">
+        <h3>Details voor <span id="detail-date">-</span></h3>
+        <p id="detail-value">-</p>
+    </div>
+</div>
 
-        // Background wallpaper mappings based on current week number
-        const seasonalWallpapers = {
-            winter: "https://images.unsplash.com/photo-1547989453-11e67ffb3885?auto=format&fit=crop&w=1920&q=80", // Winter landschap
-            spring: "https://images.unsplash.com/photo-1526413425592-53b022196ff3?auto=format&fit=crop&w=1920&q=80", // Lentebloesem
-            summer: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1920&q=80", // Zomers strand
-            autumn: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1920&q=80"  // Herfstbos
-        };
+<div class="tooltip" id="tooltip"></div>
 
-        // ==================== METEOROLOGICAL ENGINE (IDW) ====================
+<script>
+    // Configuraties en variabelen
+    const rumptCoords = { lat: 51.8922, lng: 5.1436 };
+    let climateData = [];
+    let activeMetric = 'TG';
+
+    const stationCoordinates = {
+        235: { name: "De Kooy", lat: 52.928, lng: 4.789 },
+        249: { name: "Berkhout", lat: 52.644, lng: 4.979 },
+        251: { name: "Hoorn Terschelling", lat: 53.393, lng: 5.346 },
+        257: { name: "Wijk aan Zee", lat: 52.506, lng: 4.603 },
+        260: { name: "De Bilt", lat: 52.100, lng: 5.180 },
+        269: { name: "Lelystad", lat: 52.458, lng: 5.520 },
+        270: { name: "Leeuwarden", lat: 53.224, lng: 5.751 },
+        273: { name: "Marknesse", lat: 52.703, lng: 5.888 },
+        275: { name: "Deelen", lat: 52.056, lng: 5.873 },
+        277: { name: "Lauwersoog", lat: 53.413, lng: 6.200 },
+        278: { name: "Heino", lat: 52.435, lng: 6.260 },
+        279: { name: "Hoogeveen", lat: 52.750, lng: 6.575 },
+        280: { name: "Eelde", lat: 53.125, lng: 6.585 },
+        283: { name: "Hupsel", lat: 52.069, lng: 6.657 },
+        286: { name: "Nieuw Beerta", lat: 53.196, lng: 7.150 },
+        290: { name: "Twenthe", lat: 52.274, lng: 6.891 },
+        310: { name: "Vlissingen", lat: 51.442, lng: 3.596 },
+        330: { name: "Hoek van Holland", lat: 51.993, lng: 4.122 },
+        340: { name: "Woensdrecht", lat: 51.449, lng: 4.342 },
+        344: { name: "Rotterdam", lat: 51.942, lng: 4.437 },
+        348: { name: "Cabauw", lat: 51.971, lng: 4.926 },
+        350: { name: "Gilze-Rijen", lat: 51.566, lng: 4.936 },
+        356: { name: "Herwijnen", lat: 51.859, lng: 5.146 },
+        370: { name: "Eindhoven", lat: 51.451, lng: 5.377 },
+        375: { name: "Volkel", lat: 51.659, lng: 5.707 },
+        380: { name: "Maastricht", lat: 50.911, lng: 5.771 },
+        392: { name: "Arcen", lat: 51.498, lng: 6.195 }
+    };
+
+    const metricMeta = {
+        TG: { unit: "°C", name: "Gemiddelde Temp" },
+        TX: { unit: "°C", name: "Maximum Temp" },
+        TN: { unit: "°C", name: "Minimum Temp" },
+        RH: { unit: "mm", name: "Neerslag" },
+        SQ: { unit: "uur", name: "Zonneschijnduur" }
+    };
+
+    // ==================== KNMI PARSER (VERBETERD) ====================
+    function parseKNMICSV(content, stationId) {
+        const lines = content.split('\n');
+        if (lines.length < 10) return [];
         
-        /**
-         * Inverse Distance Weighting Interpolation
-         * Math: Value = Sum(v_i / d_i^p) / Sum(1 / d_i^p)
-         */
-        function interpolateValue(targetLat, targetLng, availableStationsData, power = 2) {
-            let totalWeight = 0;
-            let weightedSum = 0;
+        let headerLineIndex = -1;
+        for (let i = 0; i < lines.length; i++) {
+            if (lines[i].includes('STN') && lines[i].includes('YYYYMMDD')) {
+                headerLineIndex = i;
+                break;
+            }
+        }
+        
+        if (headerLineIndex === -1) return [];
+        
+        // Haal de '#' weg en strip alle vreemde (non-breaking) witruimtes
+        let headerLine = lines[headerLineIndex].replace('#', '').trim();
+        const headers = headerLine.split(',').map(h => h.replace(/[\s\u00A0]/g, '').replace(/^"|"$/g, ''));
+        
+        const data = [];
+        
+        for (let i = headerLineIndex + 1; i < lines.length; i++) {
+            const line = lines[i].trim();
+            if (!line || line.startsWith('#')) continue; 
             
-            // Check voor exacte match om division by zero te voorkomen
-            for (const item of availableStationsData) {
-                const meta = stationCoordinates[item.STN];
-                if (!meta) continue;
+            // Haal witruimtes weg uit de waardenregels
+            const values = line.split(',').map(v => v.replace(/[\s\u00A0]/g, '').replace(/^"|"$/g, ''));
+            if (values.length !== headers.length) continue;
+            
+            const row = {};
+            for (let j = 0; j < headers.length; j++) {
+                const header = headers[j];
+                const value = values[j];
                 
-                if (meta.lat === targetLat && meta.lng === targetLng) {
-                    return item.value;
+                if (value === '') {
+                    row[header] = undefined;
+                    continue;
                 }
                 
-                // Bereken Euclidische afstand (voldoende voor deze schaal in NL)
-                const distance = Math.sqrt(Math.pow(targetLat - meta.lat, 2) + Math.pow(targetLng - meta.lng, 2));
-                
-                if (distance === 0) return item.value;
-                
-                const weight = 1 / Math.pow(distance, power);
-                weightedSum += item.value * weight;
-                totalWeight += weight;
-            }
-            
-            if (totalWeight === 0) return 0;
-            return weightedSum / totalWeight;
-        }
-
-        function getInterpolatedDataForDate(year, month, day) {
-            const dayData = climateData.filter(d => d.year === year && d.month === month && d.day === day && activeStations.has(d.STN));
-            
-            const stationValues = dayData.map(d => ({
-                STN: d.STN,
-                value: d[activeMetric] !== undefined ? d[activeMetric] : 0
-            })).filter(v => v.value !== undefined);
-
-            if (stationValues.length === 0) return { interpolated: 0, stations: [] };
-
-            const interpolatedValue = interpolateValue(rumptCoords.lat, rumptCoords.lng, stationValues);
-            
-            // Haal ook de overige statistieken op voor de modal popup kaart
-            const allMetrics = {};
-            for (const m of Object.keys(metricMeta)) {
-                const sVals = dayData.map(d => ({ STN: d.STN, value: d[m] })).filter(v => v.value !== undefined);
-                allMetrics[m] = sVals.length > 0 ? interpolateValue(rumptCoords.lat, rumptCoords.lng, sVals) : 0;
-            }
-
-            return {
-                interpolated: interpolatedValue,
-                allMetrics: allMetrics,
-                stations: dayData.map(d => ({
-                    id: d.STN,
-                    name: stationCoordinates[d.STN]?.name || `Station ${d.STN}`,
-                    value: d[activeMetric],
-                    lat: stationCoordinates[d.STN]?.lat,
-                    lng: stationCoordinates[d.STN]?.lng
-                }))
-            };
-        }
-
-        // ==================== KNMI CSV PARSING ====================
-        
-        /**
-         * Parse KNMI CSV file format (etmgeg_XXX.txt)
-         * Format: Header on line 52, values in 0.1 units, -1 indicates <0.05
-         * Returns array of data objects with parsed values
-         */
-        function parseKNMICSV(content, stationId) {
-            const lines = content.split('\n');
-            if (lines.length < 10) return [];
-            
-            // Zoek de headerregel op een flexibele manier
-            let headerLineIndex = -1;
-            for (let i = 0; i < lines.length; i++) {
-                if (lines[i].includes('STN') && lines[i].includes('YYYYMMDD')) {
-                    headerLineIndex = i;
-                    break;
+                if (header === 'STN') {
+                    row[header] = parseInt(value, 10);
+                } else if (header === 'YYYYMMDD') {
+                    row[header] = value;
+                } else if (!isNaN(parseFloat(value)) && isFinite(value)) {
+                    const numValue = parseFloat(value);
+                    // KNMI gebruikt -1 voor neerslag < 0.05mm
+                    row[header] = numValue === -1 ? 0.04 : numValue * 0.1;
+                } else {
+                    row[header] = value;
                 }
             }
             
-            if (headerLineIndex === -1) {
-                console.warn(`Station ${stationId}: Regel met 'STN' en 'YYYYMMDD' niet gevonden.`);
-                return [];
-            }
-            
-            // Maak de headerregel schoon: haal de '#' weg en vervang alle vreemde KNMI-witruimtes
-            let headerLine = lines[headerLineIndex].replace('#', '').trim();
-            
-            // Split op komma's en reinig ELKE header grondig (ook onzichtbare NBSP tekens)
-            const headers = headerLine.split(',').map(h => {
-                return h.replace(/[\s\u00A0]/g, '').replace(/^"|"$/g, '');
-            });
-            
-            const data = [];
-            
-            // Parse de dataregels (alles vanaf de headerregel + 1)
-            for (let i = headerLineIndex + 1; i < lines.length; i++) {
-                const line = lines[i].trim();
-                // Sla lege regels of eventuele extra commentaarregels over
-                if (!line || line.startsWith('#')) continue; 
+            if (row.STN && row.YYYYMMDD) {
+                const dateStr = row.YYYYMMDD.toString();
+                row.year = parseInt(dateStr.substring(0, 4), 10);
+                row.month = parseInt(dateStr.substring(4, 6), 10);
+                row.day = parseInt(dateStr.substring(6, 8), 10);
                 
-                // Split de waarden en maak ze direct schoon van (on)zichtbare spaties
-                const values = line.split(',').map(v => {
-                    return v.replace(/[\s\u00A0]/g, '').replace(/^"|"$/g, '');
-                });
-                
-                if (values.length !== headers.length) continue;
-                
-                const row = {};
-                for (let j = 0; j < headers.length; j++) {
-                    const header = headers[j];
-                    const value = values[j];
-                    
-                    // Als een waarde leeg is (zoals bij VVX), sla hem op als undefined
-                    if (value === '') {
-                        row[header] = undefined;
-                        continue;
-                    }
-                    
-                    if (header === 'STN') {
-                        row[header] = parseInt(value, 10);
-                    } else if (header === 'YYYYMMDD') {
-                        row[header] = value;
-                    } else if (!isNaN(parseFloat(value)) && isFinite(value)) {
-                        const numValue = parseFloat(value);
-                        // KNMI gebruikt -1 voor neerslag < 0.05 mm
-                        row[header] = numValue === -1 ? 0.04 : numValue * 0.1;
-                    } else {
-                        row[header] = value;
-                    }
-                }
-                
-                // Controleer of de rij valide is en zet de datum om
-                if (row.STN && row.YYYYMMDD) {
-                    const dateStr = row.YYYYMMDD.toString();
-                    const year = parseInt(dateStr.substring(0, 4), 10);
-                    const month = parseInt(dateStr.substring(4, 6), 10);
-                    const day = parseInt(dateStr.substring(6, 8), 10);
-                    
-                    // Filter direct op de gewenste jaren (1996 - 2026)
-                    if (year >= 1996 && year <= 2026) {
-                        row.year = year;
-                        row.month = month;
-                        row.day = day;
-                        data.push(row);
-                    }
+                if (row.year >= 1996 && row.year <= 2026) {
+                    data.push(row);
                 }
             }
-            
-            console.log(`Station ${stationId} succesvol geparsed: ${data.length} rijen gevonden.`);
-            return data;
         }
+        return data;
+    }
 
-        // ==================== DATA LOADING ====================
+    // ==================== METEOROLOGISCHE INTERPOLATIE (IDW) ====================
+    function interpolateValue(targetLat, targetLng, availableStationsData) {
+        let totalWeight = 0;
+        let weightedSum = 0;
         
-        async function loadAllStationData() {
-            if (dataLoadingPromise) return dataLoadingPromise;
+        for (const item of availableStationsData) {
+            const meta = stationCoordinates[item.STN];
+            if (!meta) continue;
             
-            dataLoadingPromise = new Promise(async (resolve) => {
-                try {
-                    console.log('Starten met laden KNMI data van GitHub Pages...');
-                    const allData = [];
-                    
-                    const stationFiles = [
-                        235, 249, 251, 257, 260, 269, 270, 273, 275, 277, 278, 279, 280,
-                        283, 286, 290, 310, 330, 340, 344, 348, 350, 356, 370, 375, 380, 392
-                    ];
-                    
-                    // We laden de bestanden relatief in, dat werkt altijd op GitHub Pages
-                    const loadPromises = stationFiles.map(async (stationId) => {
-                        try {
-                            const response = await fetch(`etmgeg_${stationId}.txt`);
-                            if (response.ok) {
-                                const content = await response.text();
-                                const parsedData = parseKNMICSV(content, stationId);
-                                if (parsedData.length > 0) {
-                                    return parsedData;
-                                }
-                            } else {
-                                console.warn(`Bestand etmgeg_${stationId}.txt niet gevonden (Status: ${response.status})`);
-                            }
-                        } catch (error) {
-                            console.warn(`Fout bij laden station ${stationId}:`, error.message);
-                        }
-                        return [];
-                    });
-                    
-                    const results = await Promise.all(loadPromises);
-                    
-                    for (const stationData of results) {
-                        allData.push(...stationData);
-                    }
-                    
-                    if (allData.length > 0) {
-                        console.log(`Succes! ${allData.length} regels ingeladen uit echte KNMI bestanden.`);
-                        climateData = allData;
-                        resolve(allData);
-                    } else {
-                        console.warn('Geen bruikbare data kunnen parsen. We vallen terug op de demo-data.');
-                        generateDemoData();
-                        resolve(climateData);
-                    }
-                } catch (error) {
-                    console.error('Algemene fout in loadAllStationData:', error);
-                    generateDemoData();
-                    resolve(climateData);
+            const distance = Math.sqrt(Math.pow(targetLat - meta.lat, 2) + Math.pow(targetLng - meta.lng, 2));
+            if (distance === 0) return item.value;
+            
+            const weight = 1 / Math.pow(distance, 2);
+            weightedSum += item.value * weight;
+            totalWeight += weight;
+        }
+        
+        return totalWeight === 0 ? 0 : weightedSum / totalWeight;
+    }
+
+    function getInterpolatedValueForDate(year, month, day) {
+        const dayData = climateData.filter(d => d.year === year && d.month === month && d.day === day);
+        const stationValues = dayData.map(d => ({
+            STN: d.STN,
+            value: d[activeMetric]
+        })).filter(v => v.value !== undefined);
+
+        if (stationValues.length === 0) return null;
+        return interpolateValue(rumptCoords.lat, rumptCoords.lng, stationValues);
+    }
+
+    // ==================== DATA LADEN VRAAGSTRATEGIE ====================
+    async function loadData() {
+        const stationFiles = Object.keys(stationCoordinates).map(Number);
+        const allData = [];
+
+        const loadPromises = stationFiles.map(async (stationId) => {
+            try {
+                const response = await fetch(`etmgeg_${stationId}.txt`);
+                if (response.ok) {
+                    const content = await response.text();
+                    return parseKNMICSV(content, stationId);
                 }
-            });
-            
-            return dataLoadingPromise;
-        }
-
-        /**
-         * Fallback data generator if CSV files are not reachable
-         */
-        function generateDemoData() {
-            console.log("Generating high-fidelity climate fallback simulation matrix...");
-            const simulatedData = [];
-            const stations = Object.keys(stationCoordinates).map(Number);
-            
-            for (let year = 1996; year <= 2026; year++) {
-                for (let month = 1; month <= 12; month++) {
-                    const daysInMonth = new Date(year, month, 0).getDate();
-                    for (let day = 1; day <= daysInMonth; day++) {
-                        
-                        // Calculate seasonal baseline index
-                        const dayOfYear = getDayOfYear(year, month, day);
-                        const baseTemp = 11 + 10 * Math.sin((dayOfYear - 105) * 2 * Math.PI / 365);
-                        
-                        for (const stn of stations) {
-                            // Introduce geographical variations based on coordinates
-                            const geoFactor = (stationCoordinates[stn].lat - 52) * -1.5 + (stationCoordinates[stn].lng - 5.5) * 0.4;
-                            const noise = (Math.sin(day + stn) * 2.5) + (Math.cos(year * month + day) * 1.5);
-                            
-                            const finalTG = baseTemp + geoFactor + noise;
-                            const finalRH = Math.max(0, (Math.sin(dayOfYear * stn) * 8) - 3) < 1 ? 0 : Math.max(0, (Math.sin(dayOfYear * stn) * 14) - 4);
-                            const finalSQ = Math.max(0, Math.min(16, 6 + 5 * Math.sin((dayOfYear - 80) * 2 * Math.PI / 365) + noise));
-
-                            simulatedData.push({
-                                STN: stn,
-                                YYYYMMDD: `${year}${month.toString().padStart(2,'0')}${day.toString().padStart(2,'0')}`,
-                                year, month, day,
-                                TG: finalTG,
-                                TX: finalTG + 4 + Math.abs(noise/2),
-                                TN: finalTG - 4 - Math.abs(noise/2),
-                                RH: finalRH,
-                                SQ: finalSQ
-                            });
-                        }
-                    }
-                }
+            } catch (e) {
+                console.warn(`Kon bestand voor station ${stationId} niet laden:`, e);
             }
-            climateData = simulatedData;
-        }
-
-        // ==================== VISUALIZATION ENGINE ====================
-        
-        function getColorForValue(value) {
-            const meta = metricMeta[activeMetric];
-            
-            if (meta.scheme === 'thermal') {
-                // Temperature scale (-10C to 35C)
-                const min = -5, max = 28;
-                const percent = Math.max(0, Math.min(1, (value - min) / (max - min)));
-                
-                // Pure CSS HSL Interpolation from cool blue to scorching red
-                const hue = 240 - (percent * 240); 
-                return `hsl(${hue}, 85%, 55%)`;
-            } else if (meta.scheme === 'precipitation') {
-                // Rain scale (0mm to 12mm)
-                if (value <= 0.05) return '#f8fafc'; // Dry bone white-grey
-                const maxRain = 15;
-                const percent = Math.min(1, value / maxRain);
-                return `rgba(37, 99, 235, ${0.15 + percent * 0.85})`; // Dynamic deep royal blue opacity
-            } else if (meta.scheme === 'solar') {
-                // Sunshine duration scale (0h to 14h)
-                const maxSun = 12;
-                const percent = Math.min(1, value / maxSun);
-                return `rgba(245, 158, 11, ${0.1 + percent * 0.9})`; // Golden radiant amber scale
-            }
-            return '#cbd5e1';
-        }
-
-        function updateLegendUI() {
-            const container = document.getElementById('matrix-legend');
-            const meta = metricMeta[activeMetric];
-            
-            let labels = ["Koud", "Warm"];
-            if (activeMetric === 'RH') labels = ["Droog", "Nat"];
-            if (activeMetric === 'SQ') labels = ["Bewolkt", "Zonnig"];
-            
-            let colorBlocks = '';
-            const steps = 6;
-            const sampleRange = activeMetric === 'TG' || activeMetric === 'TX' || activeMetric === 'TN' ? [-5, 5, 12, 18, 25, 30] :
-                               activeMetric === 'RH' ? [0, 1, 3, 6, 10, 15] : [0, 2, 4, 7, 10, 13];
-
-            sampleRange.forEach(val => {
-                colorBlocks += `<div class="legend-cell shadow-sm" style="background-color: ${getColorForValue(val)}" title="${val.toFixed(1)}${meta.unit}"></div>`;
-            });
-
-            container.innerHTML = `<span>${labels[0]}</span> ${colorBlocks} <span>${labels[1]}</span>`;
-        }
-
-        function renderCalendar() {
-            const canvas = document.getElementById('matrix-canvas');
-            canvas.innerHTML = ''; // Wipe frame
-
-            updateLegendUI();
-
-            // Loop through years top-to-bottom
-            for (let year = 1996; year <= 2026; year++) {
-                const rowEl = document.createElement('div');
-                rowEl.className = 'flex items-center gap-1 min-w-0';
-                
-                // Year badge identifier
-                const label = document.createElement('div');
-                label.className = 'w-10 text-xs font-black text-slate-400 select-none tracking-tighter';
-                label.textContent = year;
-                rowEl.appendChild(label);
-
-                const gridWrapper = document.createElement('div');
-                gridWrapper.className = 'calendar-grid flex-1';
-
-                // Query lookup optimized dictionary for this year layer
-                const yearData = climateData.filter(d => d.year === year && activeStations.has(d.STN));
-                
-                // Render exactly 53 blocks representing weeks
-                for (let week = 1; week <= 53; week++) {
-                    const cell = document.createElement('div');
-                    cell.className = 'day-cell bg-slate-100 shadow-inner border border-slate-200/20';
-                    
-                    // Calculate target date matching this historical week block
-                    const targetDate = getDateOfISOWeek(week, year);
-                    
-                    if (targetDate.getFullYear() === year) {
-                        const m = targetDate.getMonth() + 1;
-                        const d = targetDate.getDate();
-                        
-                        const profile = getInterpolatedDataForDate(year, m, d);
-                        cell.style.backgroundColor = getColorForValue(profile.interpolated);
-                        cell.setAttribute('title', `Wkn ${week} (${d}-${m}-${year}): ${profile.interpolated.toFixed(1)}${metricMeta[activeMetric].unit}`);
-                        
-                        // Interactive breakdown bind
-                        cell.addEventListener('click', () => triggerDayModal(year, m, d, week, profile));
-                    } else {
-                        cell.style.backgroundColor = 'transparent';
-                        cell.style.cursor = 'default';
-                        cell.className = 'aspect-ratio pointer-events-none opacity-0';
-                    }
-                    
-                    gridWrapper.appendChild(cell);
-                }
-                
-                rowEl.appendChild(gridWrapper);
-                canvas.appendChild(rowEl);
-            }
-        }
-
-        // ==================== INTERACTIVE MODAL & CHARTS ====================
-        
-        function triggerDayModal(year, month, day, week, profile) {
-            const modal = document.getElementById('day-detail-modal');
-            
-            document.getElementById('modal-week-lbl').textContent = `ISO Weekbasis ${week} · Jaarlaag ${year}`;
-            document.getElementById('modal-date-title').textContent = `${day} ${getMonthNameNL(month)} ${year}`;
-            
-            const grid = document.getElementById('modal-metrics-grid');
-            grid.innerHTML = '';
-            
-            // Generate macro indicators
-            Object.keys(metricMeta).forEach(mKey => {
-                const mObj = metricMeta[mKey];
-                const activeHighlight = mKey === activeMetric ? 'border-amber-400 bg-amber-50/50' : 'border-slate-100 bg-slate-50/40';
-                const val = profile.allMetrics ? profile.allMetrics[mKey] : 0;
-
-                grid.innerHTML += `
-                    <div class="p-3 rounded-xl border text-center ${activeHighlight}">
-                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tight">${mObj.title}</p>
-                        <p class="text-base font-black text-slate-800 mt-1">${val.toFixed(1)} <span class="text-xs font-normal text-slate-500">${mObj.unit}</span></p>
-                    </div>
-                `;
-            });
-
-            modal.classList.remove('hidden');
-            setTimeout(() => modal.firstElementChild.classList.remove('scale-95'), 10);
-
-            // Populate ChartJS telemetry visualization
-            renderModalChart(profile.stations, profile.interpolated);
-        }
-
-        function renderModalChart(stations, interpolatedVal) {
-            const ctx = document.getElementById('modal-station-chart').getContext('2d');
-            
-            if (modalChartInstance) {
-                modalChartInstance.destroy();
-            }
-
-            // Sort by distance or weight factor for visual structure
-            const sortedStations = [...stations].sort((a,b) => b.value - a.value);
-            const labels = sortedStations.map(s => s.name);
-            const dataVals = sortedStations.map(s => s.value);
-            
-            // Dynamic reference line injection representing local IDW target match
-            const targetLineDataset = Array(sortedStations.length).fill(interpolatedVal);
-
-            modalChartInstance = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [
-                        {
-                            label: `Meting Station (${metricMeta[activeMetric].unit})`,
-                            data: dataVals,
-                            backgroundColor: 'rgba(51, 65, 85, 0.75)',
-                            borderColor: 'rgba(51, 65, 85, 1)',
-                            borderWidth: 1.5,
-                            borderRadius: 6,
-                            barPercentage: 0.65
-                        },
-                        {
-                            label: `Geïnterpoleerd Rumpt`,
-                            data: targetLineDataset,
-                            type: 'line',
-                            borderColor: '#f59e0b',
-                            borderWidth: 2.5,
-                            borderDash: [5, 4],
-                            fill: false,
-                            pointRadius: 0
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: true, position: 'top', labels: { boxWidth: 12, font: { size: 9, weight: 'bold' } } }
-                    },
-                    scales: {
-                        y: { grid: { color: '#f1f5f9' }, ticks: { font: { size: 9 } } },
-                        x: { grid: { display: false }, ticks: { font: { size: 8, weight: '600' }, maxRotation: 45 } }
-                    }
-                }
-            });
-        }
-
-        function closeDayDetail() {
-            const modal = document.getElementById('day-detail-modal');
-            modal.firstElementChild.classList.add('scale-95');
-            setTimeout(() => modal.classList.add('hidden'), 150);
-        }
-
-        // ==================== INTERACTIVE LEAFLET MAP ====================
-        
-        function initLeafletMap() {
-            // Positie kaart centreren boven Nederland
-            mapInstance = L.map('map', {
-                center: [52.12, 5.35],
-                zoom: 7,
-                zoomControl: false,
-                attributionControl: false
-            });
-
-            // Clean minimalistic vector tile map layout layer
-            L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-                maxZoom: 18
-            }).addTo(mapInstance);
-
-            // Add custom scaling controls back to bottom right corner boundary
-            L.control.zoom({ position: 'bottomright' }).addTo(mapInstance);
-
-            // Render permanent target marker node over the coordinate intersection of Rumpt
-            const rumptIcon = L.divIcon({
-                className: 'custom-div-icon',
-                html: `<div class="w-4 h-4 bg-amber-500 border-2 border-white rounded-full shadow-lg flex items-center justify-center animate-ping absolute"></div>
-                       <div class="w-4 h-4 bg-amber-500 border-2 border-white rounded-full shadow-lg relative z-50"></div>`,
-                iconSize: [16, 16],
-                iconAnchor: [8, 8]
-            });
-            L.marker([rumptCoords.lat, rumptCoords.lng], { icon: rumptIcon }).addTo(mapInstance).bindPopup("<b>Doellocatie: Rumpt</b><br>Klimaatprofiel centrum.");
-
-            // Render all available stations mapping matrices
-            buildStationMarkers();
-        }
-
-        function buildStationMarkers() {
-            Object.keys(stationCoordinates).forEach(stnId => {
-                const meta = stationCoordinates[stnId];
-                const isActive = activeStations.has(Number(stnId));
-                
-                const markerIcon = L.divIcon({
-                    className: `station-icon-${stnId}`,
-                    html: `<div class="station-dot w-3.5 h-3.5 rounded-full border border-white shadow-md transition-all duration-200 ${isActive ? 'bg-slate-700 scale-100' : 'bg-slate-300 opacity-40 scale-90 line-through'}" style="transform-origin:center;"></div>`,
-                    iconSize: [14, 14],
-                    iconAnchor: [7, 7]
-                });
-
-                const marker = L.marker([meta.lat, meta.lng], { icon: markerIcon }).addTo(mapInstance);
-                
-                // Dynamic contextual description strings bindings
-                const popupContent = document.createElement('div');
-                popupContent.className = 'text-xs p-1 font-sans';
-                popupContent.innerHTML = `
-                    <p class="font-bold text-slate-900">${meta.name} (STN ${stnId})</p>
-                    <p class="text-slate-400 mt-0.5">Status: <span class="font-bold ${isActive ? 'text-emerald-600' : 'text-rose-500'}">${isActive ? 'Actief in IDW' : 'Uitgesloten'}</span></p>
-                    <button onclick="toggleStationNetwork(${stnId})" class="mt-2 w-full bg-slate-800 text-white font-bold text-[10px] py-1 px-2 rounded hover:bg-slate-700 transition-colors">
-                        ${isActive ? '🔴 Schakel Uit' : '🟢 Schakel In'}
-                    </button>
-                `;
-
-                marker.bindPopup(popupContent);
-                mapMarkers[stnId] = marker;
-            });
-        }
-
-        function toggleStationNetwork(stnId) {
-            const id = Number(stnId);
-            if (activeStations.has(id)) {
-                activeStations.delete(id);
-            } else {
-                activeStations.add(id);
-            }
-            
-            // Re-render and force framework cycle paint execution loops
-            const isActive = activeStations.has(id);
-            const dot = mapMarkers[id].getElement().querySelector('.station-dot');
-            if (dot) {
-                dot.className = `station-dot w-3.5 h-3.5 rounded-full border border-white shadow-md transition-all duration-200 ${isActive ? 'bg-slate-700 scale-100' : 'bg-slate-300 opacity-40 scale-90'}`;
-            }
-
-            mapInstance.closePopup();
-            
-            // Re-bind actions context inside markers mapping
-            const meta = stationCoordinates[id];
-            const popupContent = document.createElement('div');
-            popupContent.className = 'text-xs p-1 font-sans';
-            popupContent.innerHTML = `
-                <p class="font-bold text-slate-900">${meta.name} (STN ${id})</p>
-                <p class="text-slate-400 mt-0.5">Status: <span class="font-bold ${isActive ? 'text-emerald-600' : 'text-rose-500'}">${isActive ? 'Actief in IDW' : 'Uitgesloten'}</span></p>
-                <button onclick="toggleStationNetwork(${id})" class="mt-2 w-full bg-slate-800 text-white font-bold text-[10px] py-1 px-2 rounded hover:bg-slate-700 transition-colors">
-                    ${isActive ? '🔴 Schakel Uit' : '🟢 Schakel In'}
-                </button>
-            `;
-            mapMarkers[id].bindPopup(popupContent);
-
-            updateDashboard();
-        }
-
-        function toggleAllStations(status) {
-            if (status) {
-                activeStations = new Set(Object.keys(stationCoordinates).map(Number));
-            } else {
-                activeStations.clear();
-            }
-            
-            Object.keys(mapMarkers).forEach(stnId => {
-                const isActive = activeStations.has(Number(stnId));
-                const dot = mapMarkers[stnId].getElement().querySelector('.station-dot');
-                if (dot) {
-                    dot.className = `station-dot w-3.5 h-3.5 rounded-full border border-white shadow-md transition-all duration-200 ${isActive ? 'bg-slate-700 scale-100' : 'bg-slate-300 opacity-40 scale-90'}`;
-                }
-            });
-
-            updateDashboard();
-        }
-
-        // ==================== UI SYSTEM LISTENERS ====================
-        
-        function setupMetricListeners() {
-            const buttons = document.querySelectorAll('.metric-btn');
-            buttons.forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    buttons.forEach(b => {
-                        b.className = "metric-btn px-3 py-2.5 rounded-xl border text-xs font-bold text-left transition-all bg-white text-slate-600 border-slate-200 hover:bg-slate-50";
-                    });
-                    
-                    const targetBtn = e.currentTarget;
-                    targetBtn.className = "metric-btn px-3 py-2.5 rounded-xl border text-xs font-bold text-left transition-all bg-amber-500 text-white border-amber-600 shadow-sm";
-                    
-                    activeMetric = targetBtn.getAttribute('data-metric');
-                    
-                    updateMetricDescription();
-                    updateDashboard();
-                });
-            });
-        }
-
-        function updateMetricDescription() {
-            const meta = metricMeta[activeMetric];
-            document.getElementById('metric-description').textContent = meta.desc;
-        }
-
-        function updateInstructionText() {
-            const meta = metricMeta[activeMetric];
-            document.getElementById('instruction-text').textContent = `Geïnterpoleerde ${meta.title.toLowerCase()} [${meta.unit}] voor Rumpt. Klik op een cel voor dageditie details.`;
-        }
-
-        function applyBackgroundForWeek(weekStr) {
-            const weekNum = parseInt(weekStr.split(' ')[1], 10) || 20;
-            let wallpaperUrl = seasonalWallpapers.spring;
-            
-            if (weekNum >= 48 || weekNum <= 10) wallpaperUrl = seasonalWallpapers.winter;
-            else if (weekNum >= 11 && weekNum <= 22) wallpaperUrl = seasonalWallpapers.spring;
-            else if (weekNum >= 23 && weekNum <= 36) wallpaperUrl = seasonalWallpapers.summer;
-            else if (weekNum >= 37 && weekNum <= 47) wallpaperUrl = seasonalWallpapers.autumn;
-
-            document.body.style.backgroundImage = `linear-gradient(rgba(15, 23, 42, 0.45), rgba(15, 23, 42, 0.45)), url('${wallpaperUrl}')`;
-        }
-
-        // ==================== CALENDAR MATH UTILITIES ====================
-        
-        function getCurrentWeek() {
-            const today = new Date();
-            const target = new Date(today.valueOf());
-            const dayNr = (today.getDay() + 6) % 7;
-            target.setDate(target.getDate() - dayNr + 3);
-            const firstThursday = target.valueOf();
-            target.setMonth(0, 1);
-            if (target.getDay() !== 4) {
-                target.setMonth(0, 1 + ((4 - target.getDay() + 7) % 7));
-            }
-            const weekNum = 1 + Math.ceil((firstThursday - target) / 604800000);
-            return `Week ${weekNum}, ${today.getFullYear()}`;
-        }
-
-        function getDateOfISOWeek(w, y) {
-            const simple = new Date(y, 0, 1 + (w - 1) * 7);
-            const dow = simple.getDay();
-            const ISOweekStart = simple;
-            if (dow <= 4) {
-                ISOweekStart.setDate(simple.getDate() - simple.getDay() + 1);
-            } else {
-                ISOweekStart.setDate(simple.getDate() + 8 - simple.getDay());
-            }
-            return ISOweekStart;
-        }
-
-        function getDayOfYear(year, month, day) {
-            const now = new Date(year, month - 1, day);
-            const start = new Date(year, 0, 0);
-            const diff = now - start;
-            const oneDay = 1000 * 60 * 60 * 24;
-            return Math.floor(diff / oneDay);
-        }
-
-        function getMonthNameNL(m) {
-            const names = ["januari", "februari", "maart", "april", "mei", "juni", "juli", "augustus", "september", "oktober", "november", "december"];
-            return names[m - 1];
-        }
-
-        // ==================== INITIALIZATION ====================
-        
-        window.addEventListener('DOMContentLoaded', async function() {
-            const currentWeek = getCurrentWeek();
-            document.getElementById('current-week-display').textContent = currentWeek;
-            applyBackgroundForWeek(currentWeek);
-            
-            activeStations = new Set(Object.keys(stationCoordinates).map(Number));
-            
-            // Start Leaflet Map
-            initLeafletMap();
-            
-            // Laad de echte KNMI data (valt automatisch terug op demo-data als bestanden missen of falen)
-            await loadAllStationData();
-            
-            // Initialize Dashboard UI render
-            updateMetricDescription();
-            updateDashboard();
-            setupMetricListeners();
-            
-            // Setup Modal sluit-events
-            const modal = document.getElementById('day-detail-modal');
-            modal.addEventListener('click', (e) => { if (e.target === modal) closeDayDetail(); });
-            window.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeDayDetail(); });
+            return [];
         });
 
-        function updateDashboard() {
-            renderCalendar();
-            updateInstructionText();
+        const results = await Promise.all(loadPromises);
+        results.forEach(res => allData.push(...res));
+        
+        climateData = allData;
+        renderCalendar();
+    }
+
+    // ==================== KLEURENSCHALEN & VISUALISATIE ====================
+    function getColorForValue(value) {
+        if (value === null) return '#eeeeee';
+
+        if (activeMetric === 'TG' || activeMetric === 'TX' || activeMetric === 'TN') {
+            // Temperatuur: Blauw (koud) via Geel naar Rood (warm)
+            if (value < 0) return `rgb(0, 0, ${Math.min(255, Math.floor(100 + Math.abs(value)*15))})`;
+            if (value < 15) return `rgb(${Math.floor(value*17)}, ${Math.floor(150 + value*5)}, ${Math.floor(255 - value*10)})`;
+            return `rgb(255, ${Math.max(0, Math.floor(200 - (value-15)*15))}, 0)`;
+        } else if (activeMetric === 'RH') {
+            // Neerslag: Transparant/Wit naar Donkerblauw
+            if (value <= 0.1) return '#ffffff';
+            const intensity = Math.min(255, Math.floor(value * 25));
+            return `rgb(${240 - intensity/2}, ${240 - intensity/2}, 255)`;
+        } else if (activeMetric === 'SQ') {
+            // Zonneschijn: Lichtgrijs naar Felgeel
+            const intensity = Math.min(255, Math.floor(value * 20));
+            return `rgb(255, 255, ${255 - intensity})`;
         }
-    </script>
+        return '#eeeeee';
+    }
+
+    function updateLegend() {
+        const legend = document.getElementById('legend');
+        const meta = metricMeta[activeMetric];
+        legend.innerHTML = `<strong>Legenda (${meta.unit}):</strong> `;
+
+        const steps = activeMetric === 'RH' ? [0, 1, 5, 10] : activeMetric === 'SQ' ? [0, 4, 8, 12] : [-5, 5, 15, 25];
+        steps.forEach(val => {
+            legend.innerHTML += `
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: ${getColorForValue(val)}; border: 1px solid #ccc;"></div>
+                    <span>${val}${meta.unit}</span>
+                </div>`;
+        });
+    }
+
+    // ==================== KALENDER GENERATOR ====================
+    function renderCalendar() {
+        const calendar = document.getElementById('calendar');
+        calendar.innerHTML = '';
+        updateLegend();
+
+        const tooltip = document.getElementById('tooltip');
+        const detailBox = document.getElementById('details');
+
+        // Loop over de jaren (1996 - 2026)
+        for (let year = 1996; year <= 2026; year++) {
+            const row = document.createElement('div');
+            row.className = 'year-row';
+
+            const label = document.createElement('div');
+            label.className = 'year-label';
+            label.textContent = year;
+            row.appendChild(label);
+
+            const daysContainer = document.createElement('div');
+            daysContainer.className = 'days-container';
+
+            // Loop over alle dagen van het jaar (eenvoudige opbouw per dag)
+            const startDate = new Date(year, 0, 1);
+            const endDate = new Date(year, 11, 31);
+            
+            for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+                const currentMonth = d.getMonth() + 1;
+                const currentDay = d.getDate();
+                
+                const block = document.createElement('div');
+                block.className = 'day-block';
+                
+                const val = getInterpolatedValueForDate(year, currentMonth, currentDay);
+                block.style.backgroundColor = getColorForValue(val);
+
+                const dateString = `${currentDay}-${currentMonth}-${year}`;
+                const meta = metricMeta[activeMetric];
+                const valString = val !== null ? `${val.toFixed(1)} ${meta.unit}` : 'Geen data';
+
+                // Event Listeners voor interactie (Tooltip & Details)
+                block.addEventListener('mouseover', (e) => {
+                    tooltip.style.display = 'block';
+                    tooltip.style.left = (e.pageX + 10) + 'px';
+                    tooltip.style.top = (e.pageY - 25) + 'px';
+                    tooltip.innerHTML = `<strong>${dateString}</strong>: ${valString}`;
+                });
+
+                block.addEventListener('mouseout', () => {
+                    tooltip.style.display = 'none';
+                });
+
+                block.addEventListener('click', () => {
+                    detailBox.style.display = 'block';
+                    document.getElementById('detail-date').textContent = dateString;
+                    document.getElementById('detail-value').textContent = `${meta.name}: ${valString}`;
+                });
+
+                daysContainer.appendChild(block);
+            }
+
+            row.appendChild(daysContainer);
+            calendar.appendChild(row);
+        }
+    }
+
+    // Event listener voor de variabele-selector
+    document.getElementById('metric-select').addEventListener('change', (e) => {
+        activeMetric = e.target.value;
+        renderCalendar();
+    });
+
+    // Start applicatie
+    window.onload = loadData;
+</script>
+
 </body>
 </html>
