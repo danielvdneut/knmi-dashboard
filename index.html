@@ -233,33 +233,37 @@
         let currentChartMetric = 'TX';
         let dataLoadingPromise = null;
 
-        // ==================== KNMI CSV PARSING (VERBETERD) ====================
+        // ==================== KNMI CSV PARSING ====================
+        
         function parseKNMICSV(content, stationId) {
             const lines = content.split('\n');
-            if (lines.length < 10) return [];
+            if (lines.length < 53) {
+                console.warn(`Station ${stationId}: CSV file too short`);
+                return [];
+            }
             
-            let headerLineIndex = -1;
-            for (let i = 0; i < lines.length; i++) {
-                if (lines[i].includes('STN') && lines[i].includes('YYYYMMDD')) {
+            let headerLineIndex = 51;
+            for (let i = 50; i < Math.min(60, lines.length); i++) {
+                if (lines[i].startsWith('STN') || lines[i].includes('YYYYMMDD')) {
                     headerLineIndex = i;
                     break;
                 }
             }
             
-            if (headerLineIndex === -1) return [];
+            const headerLine = lines[headerLineIndex];
+            if (!headerLine || !headerLine.includes('STN')) {
+                console.warn(`Station ${stationId}: Could not find header line`);
+                return [];
+            }
             
-            // Verwijder '#' en strip alle onzichtbare / non-breaking witruimtes volledig weg
-            let headerLine = lines[headerLineIndex].replace('#', '').trim();
-            const headers = headerLine.split(',').map(h => h.replace(/[\s\u00A0]/g, '').replace(/^"|"$/g, ''));
-            
+            const headers = headerLine.split(',').map(h => h.trim().replace(/^"|"$/g, ''));
             const data = [];
             
             for (let i = headerLineIndex + 1; i < lines.length; i++) {
                 const line = lines[i].trim();
-                if (!line || line.startsWith('#')) continue; 
+                if (!line) continue;
                 
-                // Haal alle witruimtes weg uit de waardenregels
-                const values = line.split(',').map(v => v.replace(/[\s\u00A0]/g, '').replace(/^"|"$/g, ''));
+                const values = line.split(',').map(v => v.trim().replace(/^"|"$/g, ''));
                 if (values.length !== headers.length) continue;
                 
                 const row = {};
@@ -267,18 +271,12 @@
                     const header = headers[j];
                     const value = values[j];
                     
-                    if (value === '') {
-                        row[header] = undefined;
-                        continue;
-                    }
-                    
                     if (header === 'STN') {
                         row[header] = parseInt(value, 10);
                     } else if (header === 'YYYYMMDD') {
                         row[header] = value;
                     } else if (!isNaN(parseFloat(value)) && isFinite(value)) {
                         const numValue = parseFloat(value);
-                        // KNMI gebruikt -1 voor neerslag < 0.05mm
                         row[header] = numValue === -1 ? 0.04 : numValue * 0.1;
                     } else {
                         row[header] = value;
@@ -287,19 +285,24 @@
                 
                 if (row.STN && row.YYYYMMDD) {
                     const dateStr = row.YYYYMMDD.toString();
-                    row.year = parseInt(dateStr.substring(0, 4), 10);
-                    row.month = parseInt(dateStr.substring(4, 6), 10);
-                    row.day = parseInt(dateStr.substring(6, 8), 10);
+                    const year = parseInt(dateStr.substring(0, 4), 10);
+                    const month = parseInt(dateStr.substring(4, 6), 10);
+                    const day = parseInt(dateStr.substring(6, 8), 10);
                     
-                    if (row.year >= 1996 && row.year <= 2026) {
+                    if (year >= 1996 && year <= 2026) {
+                        row.year = year;
+                        row.month = month;
+                        row.day = day;
                         data.push(row);
                     }
                 }
             }
+            
             return data;
         }
 
         // ==================== DATA LOADING ====================
+        
         async function loadAllStationData() {
             if (dataLoadingPromise) {
                 return dataLoadingPromise;
@@ -399,6 +402,7 @@
         }
 
         // ==================== ARIMA PREDICTION ====================
+        
         function predictArimaYear31(values) {
             if (values.length < 5) return 0;
             const n = values.length;
@@ -428,6 +432,7 @@
         }
 
         // ==================== IDW INTERPOLATION ====================
+        
         function calculateMapIDW(filteredRows, metric) {
             let totalWeight = 0, weightedSum = 0;
             filteredRows.forEach(row => {
@@ -448,6 +453,7 @@
         }
 
         // ==================== DATA AGGREGATION ====================
+        
         function getAggregatedDataForDay(month, day) {
             if (climateData.length === 0) {
                 return { TX: 0, TN: 0, SQ: 0, RH: 0, dryDayProbability: 100, rainDuration: 0, heavyRainProb: 0 };
@@ -520,6 +526,7 @@
         }
 
         // ==================== UI FUNCTIONS ====================
+        
         function getAverage(values) {
             return values.length === 0 ? 0 : values.reduce((a, b) => a + b, 0) / values.length;
         }
@@ -802,6 +809,7 @@
         }
 
         // ==================== MODAL FUNCTIONS ====================
+        
         function openDayDetail(month, day, stats, monthName) {
             document.getElementById('modal-date-title').textContent = `${day} ${monthName}`;
             document.getElementById('modal-tx').textContent = `${stats.TX} °C`;
@@ -853,12 +861,20 @@
                     items.forEach(item => {
                         const coord = stationCoordinates[item.stn];
                         if (!coord) return;
+                        
+                        // Zorg dat we een geldig getal hebben en negeer lege KNMI-velden/spaties
+                        const val = parseFloat(item.val);
+                        if (item.val === undefined || isNaN(val) || (typeof item.val === 'string' && item.val.trim() === '')) {
+                            return; // Sla dit station over voor deze metriek als er geen data is
+                        }
+                        
                         const dLat = clickedLocation.lat - coord.lat;
                         const dLon = clickedLocation.lon - coord.lon;
                         let distance = Math.sqrt(dLat * dLat + dLon * dLon);
                         if (distance < 0.02) distance = 0.02;
                         const weight = 1 / Math.pow(distance, 2);
-                        weightedSum += item.val * weight;
+                        
+                        weightedSum += val * weight;
                         totalWeight += weight;
                     });
                     return totalWeight === 0 ? 0 : parseFloat((weightedSum / totalWeight).toFixed(1));
@@ -932,6 +948,7 @@
         }
 
         // ==================== INITIALIZATION ====================
+        
         window.addEventListener('DOMContentLoaded', async function() {
             const currentWeek = getCurrentWeek();
             document.getElementById('current-week-display').textContent = currentWeek;
@@ -940,7 +957,6 @@
             activeStations = new Set(Object.keys(stationCoordinates).map(Number));
             
             initLeafletMap();
-            
             await loadAllStationData();
             
             updateMetricDescription();
