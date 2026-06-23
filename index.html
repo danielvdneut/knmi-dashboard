@@ -108,7 +108,7 @@
             <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
                 <div>
                     <h4 id="modal-date-title" class="text-lg font-black text-slate-900">Dag Details</h4>
-                    <p id="modal-station-count" class="text-xs text-slate-400 font-medium mt-0.5">Rumpt & Omgeving</p>
+                    <p id="modal-station-count" class="text-xs text-slate-500 font-semibold mt-0.5">Rumpt & Omgeving</p>
                 </div>
                 <button onclick="closeDayDetail()" class="text-slate-400 hover:text-slate-600 text-xl font-bold bg-white w-8 h-8 rounded-full border shadow-sm flex items-center justify-center">&times;</button>
             </div>
@@ -234,7 +234,6 @@
         let dataLoadingPromise = null;
 
         // ==================== KNMI CSV PARSING ====================
-        
         function parseKNMICSV(content, stationId) {
             const lines = content.split('\n');
             if (lines.length < 53) {
@@ -302,7 +301,6 @@
         }
 
         // ==================== DATA LOADING ====================
-        
         async function loadAllStationData() {
             if (dataLoadingPromise) {
                 return dataLoadingPromise;
@@ -402,7 +400,6 @@
         }
 
         // ==================== ARIMA PREDICTION ====================
-        
         function predictArimaYear31(values) {
             if (values.length < 5) return 0;
             const n = values.length;
@@ -432,7 +429,6 @@
         }
 
         // ==================== IDW INTERPOLATION ====================
-        
         function calculateMapIDW(filteredRows, metric) {
             let totalWeight = 0, weightedSum = 0;
             filteredRows.forEach(row => {
@@ -453,7 +449,6 @@
         }
 
         // ==================== DATA AGGREGATION ====================
-        
         function getAggregatedDataForDay(month, day) {
             if (climateData.length === 0) {
                 return { TX: 0, TN: 0, SQ: 0, RH: 0, dryDayProbability: 100, rainDuration: 0, heavyRainProb: 0 };
@@ -526,7 +521,6 @@
         }
 
         // ==================== UI FUNCTIONS ====================
-        
         function getAverage(values) {
             return values.length === 0 ? 0 : values.reduce((a, b) => a + b, 0) / values.length;
         }
@@ -809,9 +803,17 @@
         }
 
         // ==================== MODAL FUNCTIONS ====================
-        
         function openDayDetail(month, day, stats, monthName) {
             document.getElementById('modal-date-title').textContent = `${day} ${monthName}`;
+            
+            // Pas de ondertitel in het venster dynamisch aan op basis van de geselecteerde modus
+            const stationSub = document.getElementById('modal-station-count');
+            if (isRumptFocusMode) {
+                stationSub.innerHTML = `🔮 <span>ARIMA-Prognose Rumpt (Statistisch Model)</span>`;
+            } else {
+                stationSub.innerHTML = `🌍 <span>30-jarig IDW-gemiddelde van gekozen locatie</span>`;
+            }
+
             document.getElementById('modal-tx').textContent = `${stats.TX} °C`;
             document.getElementById('modal-tn').textContent = `${stats.TN} °C`;
             document.getElementById('modal-sq').textContent = `${stats.SQ} uur`;
@@ -862,10 +864,9 @@
                         const coord = stationCoordinates[item.stn];
                         if (!coord) return;
                         
-                        // Zorg dat we een geldig getal hebben en negeer lege KNMI-velden/spaties
                         const val = parseFloat(item.val);
                         if (item.val === undefined || isNaN(val) || (typeof item.val === 'string' && item.val.trim() === '')) {
-                            return; // Sla dit station over voor deze metriek als er geen data is
+                            return; 
                         }
                         
                         const dLat = clickedLocation.lat - coord.lat;
@@ -948,7 +949,6 @@
         }
 
         // ==================== INITIALIZATION ====================
-        
         window.addEventListener('DOMContentLoaded', async function() {
             const currentWeek = getCurrentWeek();
             document.getElementById('current-week-display').textContent = currentWeek;
