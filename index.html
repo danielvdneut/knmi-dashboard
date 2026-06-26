@@ -31,7 +31,7 @@
                 <h1 class="text-2xl font-black tracking-tight text-slate-900 flex items-center gap-2">
                     Persoonlijk KNMI Dashboard <span class="text-blue-600">BERGNEUT</span>
                 </h1>
-                <p class="text-xs text-slate-500 font-medium mt-1">🔮 ARIMA Voorspelling voor Rumpt & 30-jarig gemiddelde voor vrije locaties</p>
+                <p class="text-xs text-slate-500 font-medium mt-1">Voorspel ARIMA Voorspelling voor Rumpt & 30-jarig gemiddelde voor vrije locaties</p>
             </div>
             <div class="flex flex-col items-end gap-2 text-right">
                 <div class="flex items-center gap-2">
@@ -53,7 +53,7 @@
                 <div class="border-t pt-3 flex flex-col gap-2">
                     <div class="flex justify-between items-center">
                         <span id="dashboard-instruction-text" class="text-[11px] text-slate-600 font-semibold">Laden...</span>
-                        <button onclick="resetToRumpt()" class="text-[11px] font-bold text-blue-600 hover:text-blue-800 transition-colors flex items-center gap-1">🔄 Naar Rumpt</button>
+                        <button onclick="resetToRumpt()" class="text-[11px] font-bold text-blue-600 hover:text-blue-800 transition-colors flex items-center gap-1">Reset Naar Rumpt</button>
                     </div>
                 </div>
             </div>
@@ -63,15 +63,16 @@
                     <div class="flex justify-between items-center mb-4">
                         <label class="text-xs font-bold uppercase tracking-wider text-slate-400 block">2. Gegevenstype</label>
                     </div>
-                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                        <button data-metric="TX" class="metric-btn px-4 py-3 rounded-xl text-xs font-bold bg-blue-600 text-white shadow-sm transition-all text-left flex flex-col justify-between h-16"><span>🔥 Max Temp</span><span class="text-right w-full text-[10px] opacity-80">°C</span></button>
-                        <button data-metric="TN" class="metric-btn px-4 py-3 rounded-xl text-xs font-bold bg-white text-slate-700 border border-slate-200 shadow-sm transition-all text-left flex flex-col justify-between h-16"><span>❄️ Min Temp</span><span class="text-right w-full text-[10px] opacity-50">°C</span></button>
-                        <button data-metric="SQ" class="metric-btn px-4 py-3 rounded-xl text-xs font-bold bg-white text-slate-700 border border-slate-200 shadow-sm transition-all text-left flex flex-col justify-between h-16"><span>☀️ Zonuren</span><span class="text-right w-full text-[10px] opacity-50">uur</span></button>
-                        <button data-metric="RH" class="metric-btn px-4 py-3 rounded-xl text-xs font-bold bg-white text-slate-700 border border-slate-200 shadow-sm transition-all text-left flex flex-col justify-between h-16"><span>🌤️ Droge Dag Kans</span><span class="text-right w-full text-[10px] opacity-50">% kans</span></button>
+                    <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
+                        <button data-metric="TX" class="metric-btn px-4 py-3 rounded-xl text-xs font-bold bg-blue-600 text-white shadow-sm transition-all text-left flex flex-col justify-between h-16"><span>Max Temp</span><span class="text-right w-full text-[10px] opacity-80">degC</span></button>
+                        <button data-metric="TN" class="metric-btn px-4 py-3 rounded-xl text-xs font-bold bg-white text-slate-700 border border-slate-200 shadow-sm transition-all text-left flex flex-col justify-between h-16"><span>Min Temp</span><span class="text-right w-full text-[10px] opacity-50">degC</span></button>
+                        <button data-metric="TG" class="metric-btn px-4 py-3 rounded-xl text-xs font-bold bg-white text-slate-700 border border-slate-200 shadow-sm transition-all text-left flex flex-col justify-between h-16"><span>Gem. Temp</span><span class="text-right w-full text-[10px] opacity-50">degC</span></button>
+                        <button data-metric="SQ" class="metric-btn px-4 py-3 rounded-xl text-xs font-bold bg-white text-slate-700 border border-slate-200 shadow-sm transition-all text-left flex flex-col justify-between h-16"><span>Zonuren</span><span class="text-right w-full text-[10px] opacity-50">uur</span></button>
+                        <button data-metric="RH" class="metric-btn px-4 py-3 rounded-xl text-xs font-bold bg-white text-slate-700 border border-slate-200 shadow-sm transition-all text-left flex flex-col justify-between h-16"><span>Droge Dag Kans</span><span class="text-right w-full text-[10px] opacity-50">% kans</span></button>
                     </div>
                 </div>
                 <div class="bg-purple-50/80 border border-purple-100 p-3 rounded-2xl text-[11px] text-purple-900 flex items-center gap-2">
-                    <span id="dynamic-info-icon">📊</span>
+                    <span id="dynamic-info-icon">Grafiek</span>
                     <p id="dynamic-info-text">Laden van metric informatie...</p>
                 </div>
             </div>
@@ -80,23 +81,23 @@
         <div class="bg-white/80 backdrop-blur border border-slate-200 px-5 py-3 rounded-2xl shadow-sm flex justify-between items-center flex-wrap gap-2 text-xs">
             <span class="text-slate-500 font-medium">Kalender kleurindicatie op basis van de geselecteerde waarden:</span>
             <div class="flex items-center gap-2 font-bold text-slate-600">
-                <span id="legend-min">-5 °C</span>
+                <span id="legend-min">-5 degC</span>
                 <div id="legend-gradient" class="w-32 h-3 rounded-full bg-gradient-to-r from-blue-500 via-yellow-100 to-red-600"></div>
-                <span id="legend-max">28 °C</span>
+                <span id="legend-max">28 degC</span>
             </div>
         </div>
 
         <div id="calendar-grid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"></div>
 
         <footer class="bg-white/95 border border-slate-200 p-6 rounded-3xl shadow-lg space-y-3">
-            <h4 class="text-sm font-black text-slate-900 flex items-center gap-2">📘 Hoe werkt dit dashboard?</h4>
+            <h4 class="text-sm font-black text-slate-900 flex items-center gap-2">Boek Hoe werkt dit dashboard?</h4>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs leading-relaxed text-slate-600">
                 <div class="bg-slate-50 p-4 rounded-2xl border">
-                    <h5 class="font-bold text-slate-800 mb-1">📊 Data & Methodes</h5>
+                    <h5 class="font-bold text-slate-800 mb-1">Grafiek Data & Methodes</h5>
                     <p>Gebruikt historische KNMI-data (1996-2026) met twee rekenmethodes: <strong>ARIMA(1,0,0)</strong> voor Rumpt (statistische voorspelling) en <strong>IDW 30-jarig Gemiddelde</strong> voor willekeurige locaties (ruimtelijke interpolatie).</p>
                 </div>
                 <div class="bg-slate-50 p-4 rounded-2xl border">
-                    <h5 class="font-bold text-slate-800 mb-1">🗺️ Locatie & Kaart</h5>
+                    <h5 class="font-bold text-slate-800 mb-1">Kaart Locatie & Kaart</h5>
                     <p>Selecteer Rumpt voor ARIMA-voorspellingen of klik op de kaart voor IDW-berekeningen op basis van omliggende weerstations. Alle 25 KNMI-stations zijn zichtbaar.</p>
                 </div>
             </div>
@@ -113,7 +114,7 @@
                 <button onclick="closeDayDetail()" class="text-slate-400 hover:text-slate-600 text-xl font-bold bg-white w-8 h-8 rounded-full border shadow-sm flex items-center justify-center">&times;</button>
             </div>
             <div class="p-6 space-y-4 max-h-[85vh] overflow-y-auto pb-8">
-                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
                     <div class="bg-amber-50/60 border border-amber-100 p-3 rounded-2xl">
                         <span class="text-[10px] uppercase font-bold text-amber-600 block">Max Temp</span>
                         <span id="modal-tx" class="text-base font-black text-amber-900">--</span>
@@ -121,6 +122,10 @@
                     <div class="bg-blue-50/60 border border-blue-100 p-3 rounded-2xl">
                         <span class="text-[10px] uppercase font-bold text-blue-600 block">Min Temp</span>
                         <span id="modal-tn" class="text-base font-black text-blue-900">--</span>
+                    </div>
+                    <div class="bg-purple-50/60 border border-purple-100 p-3 rounded-2xl">
+                        <span class="text-[10px] uppercase font-bold text-purple-600 block">Gem. Temp</span>
+                        <span id="modal-tg" class="text-base font-black text-purple-900">--</span>
                     </div>
                     <div class="bg-yellow-50/60 border border-yellow-100 p-3 rounded-2xl">
                         <span class="text-[10px] uppercase font-bold text-yellow-600 block">Zonneschijn</span>
@@ -133,7 +138,7 @@
                 </div>
 
                 <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4">
-                    <span class="text-[10px] uppercase font-bold text-slate-400 block mb-2">🔮 Aanvullende Neerslag Analyse (Prognose)</span>
+                    <span class="text-[10px] uppercase font-bold text-slate-400 block mb-2">Voorspel Aanvullende Neerslag Analyse (Prognose)</span>
                     <div class="space-y-2 text-xs">
                         <div class="flex justify-between border-b pb-1">
                             <span class="text-slate-500">Kans op neerslag:</span>
@@ -156,7 +161,7 @@
 
                 <div class="bg-white border border-slate-200 rounded-2xl p-4">
                     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-3 pb-2 border-b">
-                        <span class="text-[10px] uppercase font-bold text-slate-400 block">📈 Historische tijdreeks op deze dag (1996 - 2026)</span>
+                        <span class="text-[10px] uppercase font-bold text-slate-400 block">Grafiek Historische tijdreeks op deze dag (1996 - 2026)</span>
                         <div id="chart-tabs" class="flex gap-1 bg-slate-100 p-1 rounded-xl text-[10px] font-bold w-full sm:w-auto justify-between">
                             <button onclick="switchChartMetric('TX')" id="tab-TX" class="px-2 py-1 rounded-lg transition-colors bg-white text-slate-800 shadow-sm">Max Temp</button>
                             <button onclick="switchChartMetric('TN')" id="tab-TN" class="px-2 py-1 rounded-lg transition-colors text-slate-600 hover:text-slate-900">Min Temp</button>
@@ -213,10 +218,11 @@
         };
 
         const metricInfoTexts = {
-            TX: { icon: "🔥", text: "Prognose van de maximale dagtemperatuur op basis van historische opwarmingscurven." },
-            TN: { icon: "❄️", text: "Prognose van de laagste nachttemperatuur om eventuele vorstperiodes of zachte nachten in kaart te brengen." },
-            SQ: { icon: "☀️", text: "Verwachte zonneschijn in uren per dag, berekend uit de historische bewolkingspatronen." },
-            RH: { icon: "🌤️", text: "De kans dat een kalenderdag volledig droog blijft." }
+            TX: { icon: "Max Temp", text: "Prognose van de maximale dagtemperatuur op basis van historische opwarmingscurven." },
+            TN: { icon: "Min Temp", text: "Prognose van de laagste nachttemperatuur om eventuele vorstperiodes of zachte nachten in kaart te brengen." },
+            TG: { icon: "Gem. Temp", text: "Prognose van de 24-uurs gemiddelde temperatuur, berekend uit historische daggemiddelden." },
+            SQ: { icon: "Zonuren", text: "Verwachte zonneschijn in uren per dag, berekend uit de historische bewolkingspatronen." },
+            RH: { icon: "Droge Dag Kans", text: "De kans dat een kalenderdag volledig droog blijft." }
         };
 
         // ==================== GLOBAL STATE ====================
@@ -535,7 +541,7 @@
         // ==================== DATA AGGREGATION ====================
         function getAggregatedDataForDay(month, day) {
             if (climateData.length === 0) {
-                return { TX: 0, TN: 0, SQ: 0, RH: 0, dryDayProbability: 100, rainDuration: 0, heavyRainProb: 0 };
+                return { TX: 0, TN: 0, TG: 0, SQ: 0, RH: 0, dryDayProbability: 100, rainDuration: 0, heavyRainProb: 0 };
             }
             
             const maxYear = climateData.reduce((max, d) => (d.year > max ? d.year : max), 2026);
@@ -545,7 +551,7 @@
                 : climateData.filter(d => activeStations.has(d.STN) && d.month === month && d.day === day && d.year >= (maxYear - 30));
             
             if (filtered.length === 0) {
-                return { TX: 0, TN: 0, SQ: 0, RH: 0, dryDayProbability: 100, rainDuration: 0, heavyRainProb: 0 };
+                return { TX: 0, TN: 0, TG: 0, SQ: 0, RH: 0, dryDayProbability: 100, rainDuration: 0, heavyRainProb: 0 };
             }
             
             if (clickedLocation && !isRumptFocusMode) {
@@ -556,6 +562,7 @@
                 return {
                     TX: calculateMapIDW(filtered, 'TX'),
                     TN: calculateMapIDW(filtered, 'TN'),
+                    TG: calculateMapIDW(filtered, 'TG'),
                     SQ: calculateMapIDW(filtered, 'SQ'),
                     RH: rawDryProb,
                     dryDayProbability: rawDryProb,
@@ -572,10 +579,11 @@
             const yearlyData = {};
             filtered.forEach(d => {
                 if (!yearlyData[d.year]) {
-                    yearlyData[d.year] = { TX: [], TN: [], SQ: [], RH: [], DR: [], RHX: [] };
+                    yearlyData[d.year] = { TX: [], TN: [], TG: [], SQ: [], RH: [], DR: [], RHX: [] };
                 }
                 yearlyData[d.year].TX.push(d.TX || 0);
                 yearlyData[d.year].TN.push(d.TN || 0);
+                yearlyData[d.year].TG.push(d.TG || 0);
                 yearlyData[d.year].SQ.push(d.SQ || 0);
                 yearlyData[d.year].RH.push(d.RH || 0);
                 yearlyData[d.year].DR.push(d.DR || 0);
@@ -585,6 +593,7 @@
             const sortedYears = Object.keys(yearlyData).map(Number).sort((a, b) => a - b);
             const txTimeline = sortedYears.map(yr => getAverage(yearlyData[yr].TX));
             const tnTimeline = sortedYears.map(yr => getAverage(yearlyData[yr].TN));
+            const tgTimeline = sortedYears.map(yr => getAverage(yearlyData[yr].TG));
             const sqTimeline = sortedYears.map(yr => getAverage(yearlyData[yr].SQ));
             const dryDaysTimeline = sortedYears.map(yr => (getAverage(yearlyData[yr].RH) <= 0) ? 100 : 0);
             const rainAmountTimeline = sortedYears.map(yr => getAverage(yearlyData[yr].RH));
@@ -594,6 +603,7 @@
             return {
                 TX: predictArimaYear31(txTimeline),
                 TN: predictArimaYear31(tnTimeline),
+                TG: predictArimaYear31(tgTimeline),
                 SQ: predictArimaYear31(sqTimeline),
                 RH: Math.max(0, Math.min(100, predictArimaYear31(dryDaysTimeline))),
                 dryDayProbability: Math.max(0, Math.min(100, predictArimaYear31(dryDaysTimeline))),
@@ -687,7 +697,7 @@
                 targetMarker.setLatLng([lat, lon]);
             } else {
                 const targetIcon = L.divIcon({
-                    html: `<span style="font-size: 24px; position: absolute; top: -24px; left: -12px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4));">📍</span>`,
+                    html: `<span style="font-size: 24px; position: absolute; top: -24px; left: -12px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4));">Locatie</span>`,
                     className: 'custom-target-icon',
                     iconSize: [24, 24]
                 });
@@ -702,7 +712,7 @@
                 targetMarker.setLatLng([51.891, 5.178]);
             } else {
                 const targetIcon = L.divIcon({
-                    html: `<span style="font-size: 24px; position: absolute; top: -24px; left: -12px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4));">📍</span>`,
+                    html: `<span style="font-size: 24px; position: absolute; top: -24px; left: -12px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4));">Locatie</span>`,
                     className: 'custom-target-icon',
                     iconSize: [24, 24]
                 });
@@ -722,9 +732,9 @@
         function updateInstructionText() {
             const instr = document.getElementById('dashboard-instruction-text');
             if (isRumptFocusMode) {
-                instr.innerHTML = `📍 <strong>Basisstation Rumpt:</strong> Gekoppeld via ARIMA(1,0,0) Model.`;
+                instr.innerHTML = `Locatie <strong>Basisstation Rumpt:</strong> Gekoppeld via ARIMA(1,0,0) Model.`;
             } else if (clickedLocation) {
-                instr.innerHTML = `🌍 <strong>Vrije Locatie:</strong> IDW 30-jarig Gemiddelde omliggende stations.`;
+                instr.innerHTML = `Wereld <strong>Vrije Locatie:</strong> IDW 30-jarig Gemiddelde omliggende stations.`;
             }
         }
 
@@ -760,9 +770,9 @@
             const legendMax = document.getElementById('legend-max');
             const gradient = document.getElementById('legend-gradient');
             
-            if (currentMetric === 'TX' || currentMetric === 'TN') {
-                legendMin.textContent = '-5 °C';
-                legendMax.textContent = '28 °C';
+            if (currentMetric === 'TX' || currentMetric === 'TN' || currentMetric === 'TG') {
+                legendMin.textContent = '-5 degC';
+                legendMax.textContent = '28 degC';
                 gradient.className = "w-32 h-3 rounded-full bg-gradient-to-r from-blue-500 via-yellow-100 to-red-600";
             } else if (currentMetric === 'SQ') {
                 legendMin.textContent = '0 uur';
@@ -858,13 +868,13 @@
         }
 
         function getMetricUnit() {
-            if (currentMetric === 'TX' || currentMetric === 'TN') return '°C';
+            if (currentMetric === 'TX' || currentMetric === 'TN' || currentMetric === 'TG') return 'degC';
             if (currentMetric === 'SQ') return 'u';
             return '%';
         }
 
         function getColorForValue(val) {
-            if (currentMetric === 'TX' || currentMetric === 'TN') {
+            if (currentMetric === 'TX' || currentMetric === 'TN' || currentMetric === 'TG') {
                 const min = -5;
                 const max = 28;
                 const percent = Math.min(100, Math.max(0, ((val - min) / (max - min)) * 100));
@@ -881,7 +891,7 @@
         }
 
         function getTextColorForBackground(val) {
-            if (currentMetric === 'TX' || currentMetric === 'TN') return val > 22 || val < -2 ? '#ffffff' : '#1e293b';
+            if (currentMetric === 'TX' || currentMetric === 'TN' || currentMetric === 'TG') return val > 22 || val < -2 ? '#ffffff' : '#1e293b';
             if (currentMetric === 'RH') return val < 40 ? '#ffffff' : '#1e293b';
             return '#1e293b';
         }
@@ -893,13 +903,14 @@
             // Pas de ondertitel in het venster dynamisch aan op basis van de geselecteerde modus
             const stationSub = document.getElementById('modal-station-count');
             if (isRumptFocusMode) {
-                stationSub.innerHTML = `🔮 <span>ARIMA-Prognose Rumpt (Statistisch Model)</span>`;
+                stationSub.innerHTML = `Voorspel <span>ARIMA-Prognose Rumpt (Statistisch Model)</span>`;
             } else {
-                stationSub.innerHTML = `🌍 <span>30-jarig IDW-gemiddelde van gekozen locatie</span>`;
+                stationSub.innerHTML = `Wereld <span>30-jarig IDW-gemiddelde van gekozen locatie</span>`;
             }
 
-            document.getElementById('modal-tx').textContent = `${stats.TX} °C`;
-            document.getElementById('modal-tn').textContent = `${stats.TN} °C`;
+            document.getElementById('modal-tx').textContent = `${stats.TX} degC`;
+            document.getElementById('modal-tn').textContent = `${stats.TN} degC`;
+            document.getElementById('modal-tg').textContent = `${stats.TG} degC`;
             document.getElementById('modal-sq').textContent = `${stats.SQ} uur`;
             const dryProb = Math.round(stats.dryDayProbability);
             document.getElementById('modal-dry-prob').textContent = `${dryProb}%`;
@@ -972,13 +983,17 @@
                 detailChart.destroy();
             }
             
-            let labelName = "Max Temp (°C)";
+            let labelName = "Max Temp (degC)";
             let borderColor = "#f59e0b";
             let bgColor = "rgba(245, 158, 11, 0.1)";
             if (currentChartMetric === 'TN') {
-                labelName = "Min Temp (°C)";
+                labelName = "Min Temp (degC)";
                 borderColor = "#3b82f6";
                 bgColor = "rgba(59, 130, 246, 0.1)";
+            } else if (currentChartMetric === 'TG') {
+                labelName = "Gem. Temp (degC)";
+                borderColor = "#8b5cf6";
+                bgColor = "rgba(139, 92, 246, 0.1)";
             } else if (currentChartMetric === 'SQ') {
                 labelName = "Zonuren (uur)";
                 borderColor = "#eab308";
