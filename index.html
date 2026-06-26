@@ -231,11 +231,11 @@
         };
 
         const metricInfoTexts = {
-            TX: { icon: "Max Temp", text: "Prognose van de maximale dagtemperatuur op basis van historische opwarmingscurven." },
-            TN: { icon: "Min Temp", text: "Prognose van de laagste nachttemperatuur om eventuele vorstperiodes of zachte nachten in kaart te brengen." },
-            TG: { icon: "Gem. Temp", text: "Prognose van de 24-uurs gemiddelde temperatuur, berekend uit historische daggemiddelden." },
-            SQ: { icon: "Zonuren", text: "Verwachte zonneschijn in uren per dag, berekend uit de historische bewolkingspatronen." },
-            RH: { icon: "Droge Dag Kans", text: "De kans dat een kalenderdag volledig droog blijft." }
+            TX: { icon: "Max Temp", text: "Prognose op basis van historische opwarmingscurven." },
+            TN: { icon: "Min Temp", text: "Prognose om vorstperiodes of zachte nachten in kaart te brengen." },
+            TG: { icon: "Gem. Temp", text: "Prognose berekend uit historische daggemiddelden." },
+            SQ: { icon: "Zonuren", text: "Verwachte zonneschijn berekend uit historische bewolkingspatronen." },
+            RH: { icon: "Droge Dag Kans", text: "Kans dat een dag volledig droog blijft." }
         };
 
         // ==================== GLOBAL STATE ====================
@@ -801,9 +801,7 @@
         function updateMetricDescription() {
             const info = metricInfoTexts[currentMetric];
             document.getElementById('dynamic-info-icon').textContent = info.icon;
-            const buttonText = document.querySelector(`[data-metric="${currentMetric}"] span`).textContent;
-            const cleanText = buttonText.replace(/^[^\s]+\s*/, '');
-            document.getElementById('dynamic-info-text').innerHTML = `<strong>${cleanText}:</strong> ${info.text}`;
+            document.getElementById('dynamic-info-text').innerHTML = `<strong>${info.icon}:</strong> ${info.text}`;
         }
 
         function setupMetricListeners() {
