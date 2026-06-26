@@ -175,7 +175,8 @@
                     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-3 pb-2 border-b">
                         <span class="text-[10px] uppercase font-bold text-slate-400 block">Grafiek Historische tijdreeks op deze dag (1996 - 2026)</span>
                         <div id="chart-tabs" class="flex gap-1 bg-slate-100 p-1 rounded-xl text-[10px] font-bold w-full sm:w-auto justify-between">
-                            <button onclick="switchChartMetric('TX')" id="tab-TX" class="px-2 py-1 rounded-lg transition-colors bg-white text-slate-800 shadow-sm">Max Temp</button>
+                            <button onclick="switchChartMetric('TG')" id="tab-TG" class="px-2 py-1 rounded-lg transition-colors bg-white text-slate-800 shadow-sm">Gem. Temp</button>
+                            <button onclick="switchChartMetric('TX')" id="tab-TX" class="px-2 py-1 rounded-lg transition-colors text-slate-600 hover:text-slate-900">Max Temp</button>
                             <button onclick="switchChartMetric('TN')" id="tab-TN" class="px-2 py-1 rounded-lg transition-colors text-slate-600 hover:text-slate-900">Min Temp</button>
                             <button onclick="switchChartMetric('SQ')" id="tab-SQ" class="px-2 py-1 rounded-lg transition-colors text-slate-600 hover:text-slate-900">Zonuren</button>
                             <button onclick="switchChartMetric('RH')" id="tab-RH" class="px-2 py-1 rounded-lg transition-colors text-slate-600 hover:text-slate-900">Neerslagsom</button>
@@ -248,7 +249,7 @@
         let isRumptFocusMode = true;
         let detailChart = null;
         let cachedModalRawData = null;
-        let currentChartMetric = 'TX';
+        let currentChartMetric = 'TG';
         let dataLoadingPromise = null;
 
         function parseKNMICSV(content, stationId) {
@@ -992,7 +993,7 @@
         }
 
         function updateTabHighlight() {
-            ['TX', 'TN', 'SQ', 'RH'].forEach(m => {
+            ['TG', 'TX', 'TN', 'SQ', 'RH'].forEach(m => {
                 const tab = document.getElementById(`tab-${m}`);
                 tab.className = (m === currentChartMetric)
                     ? "px-2 py-1 rounded-lg transition-colors bg-white text-slate-800 shadow-sm"
@@ -1042,25 +1043,29 @@
                 detailChart.destroy();
             }
             
-            let labelName = "Max Temp (°C)";
-            let borderColor = "#f59e0b";
-            let bgColor = "rgba(245, 158, 11, 0.1)";
-            if (currentChartMetric === 'TN') {
+            let labelName = "Gem. Temp (°C)";
+            let borderColor = "#1e40af";
+            let bgColor = "rgba(30, 64, 175, 0.1)";
+            if (currentChartMetric === 'TX') {
+                labelName = "Max Temp (°C)";
+                borderColor = "#1e40af";
+                bgColor = "rgba(30, 64, 175, 0.1)";
+            } else if (currentChartMetric === 'TN') {
                 labelName = "Min Temp (°C)";
-                borderColor = "#3b82f6";
-                bgColor = "rgba(59, 130, 246, 0.1)";
+                borderColor = "#1e40af";
+                bgColor = "rgba(30, 64, 175, 0.1)";
             } else if (currentChartMetric === 'TG') {
                 labelName = "Gem. Temp (°C)";
-                borderColor = "#8b5cf6";
-                bgColor = "rgba(139, 92, 246, 0.1)";
+                borderColor = "#1e40af";
+                bgColor = "rgba(30, 64, 175, 0.1)";
             } else if (currentChartMetric === 'SQ') {
                 labelName = "Zonuren (uur)";
                 borderColor = "#eab308";
                 bgColor = "rgba(234, 179, 8, 0.1)";
             } else if (currentChartMetric === 'RH') {
                 labelName = "Neerslagsom (mm)";
-                borderColor = "#4f46e5";
-                bgColor = "rgba(79, 70, 229, 0.1)";
+                borderColor = "#0ea5e9";
+                bgColor = "rgba(14, 165, 233, 0.1)";
             }
             
             const ctx = document.getElementById('historyChart').getContext('2d');
