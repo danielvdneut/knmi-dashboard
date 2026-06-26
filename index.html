@@ -233,7 +233,145 @@
         let currentChartMetric = 'TX';
         let dataLoadingPromise = null;
 
+        function parseKNMICSV(content, stationId) {
+            const lines = content.split('\n');
+            if (lines.length < 53) {
+                console.warn(`Station ${stationId}: CSV file too short`);
+                return [];
+            }
+            
+            let headerLineIndex = 51;
+            for (let i = 50; i < Math.min(60, lines.length); i++) {
+                if (lines[i].startsWith('STN') || lines[i].includes('YYYYMMDD')) {
+                    headerLineIndex = i;
+                    break;
+                }
+            }
+            
+            const headerLine = lines[headerLineIndex];
+            if (!headerLine || !headerLine.includes('STN')) {
+                console.warn(`Station ${stationId}: Could not find header line`);
+                return [];
+            }
+            
+            const headers = headerLine.split(',').map(h => h.trim().replace(/^"|"$/g, ''));
+            const data = [];
+            
+            for (let i = headerLineIndex + 1; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (!line) continue;
+                
+                const values = line.split(',').map(v => v.trim().replace(/^"|"$/g, ''));
+                if (values.length !== headers.length) continue;
+                
+                const row = {};
+                for (let j = 0; j < headers.length; j++) {
+                    const header = headers[j];
+                    const value = values[j];
+                    
+                    if (header === 'STN') {
+                        row[header] = parseInt(value, 10);
+                    } else if (header === 'YYYYMMDD') {
+                        row[header] = value;
+                    } else if (!isNaN(parseFloat(value)) && isFinite(value)) {
+                        const numValue = parseFloat(value);
+                        row[header] = numValue === -1 ? 0.04 : numValue * 0.1;
+                    } else {
+                        row[header] = value;
+                    }
+                }
+                
+                if (row.STN && row.YYYYMMDD) {
+                    const dateStr = row.YYYYMMDD.toString();
+                    const year = parseInt(dateStr.substring(0, 4), 10);
+                    const month = parseInt(dateStr.substring(4, 6), 10);
+                    const day = parseInt(dateStr.substring(6, 8), 10);
+                    
+                    if (year >= 1996 && year <= 2026) {
+                        row.year = year;
+                        row.month = month;
+                        row.day = day;
+                        data.push(row);
+                    }
+                }
+            }
+            
+            return data;
+        }
+=======
         // ==================== KNMI CSV PARSING ====================
+        function parseKNMICSV(content, stationId) {
+            const lines = content.split('\n');
+            
+            // Vind de header-lijn (bevat STN,YYYYMMDD)
+            let headerLineIndex = -1;
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (line.startsWith('# STN,YYYYMMDD') || line.includes('STN,YYYYMMDD')) {
+                    headerLineIndex = i;
+                    break;
+                }
+            }
+            
+            if (headerLineIndex === -1) {
+                console.warn(`Station ${stationId}: Could not find header line`);
+                return [];
+            }
+            
+            // Parse headers (verwijder # en spaties)
+            const headerLine = lines[headerLineIndex].replace(/^#\s*/, '').trim();
+            const headers = headerLine.split(',').map(h => h.trim());
+            const data = [];
+            
+            // Parse data regels (na header)
+            for (let i = headerLineIndex + 1; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (!line || line.startsWith('#')) continue;
+                
+                // Splits de line en vul aan met lege strings als er te weinig velden zijn
+                const values = line.split(',').map(v => v.trim());
+                while (values.length < headers.length) {
+                    values.push('');
+                }
+                
+                const row = {};
+                for (let j = 0; j < headers.length; j++) {
+                    const header = headers[j];
+                    const value = values[j];
+                    
+                    if (!header) continue;
+                    
+                    if (header === 'STN') {
+                        row[header] = parseInt(value, 10) || 0;
+                    } else if (header === 'YYYYMMDD') {
+                        row[header] = value;
+                    } else if (!isNaN(parseFloat(value)) && isFinite(value) && value !== '') {
+                        const numValue = parseFloat(value);
+                        // KNMI waarden zijn in 0.1 eenheden (behalve -1 = <0.05)
+                        row[header] = numValue === -1 ? 0.04 : numValue * 0.1;
+                    } else {
+                        row[header] = null; // Lege of ongeldige waarden
+                    }
+                }
+                
+                if (row.STN && row.YYYYMMDD) {
+                    const dateStr = row.YYYYMMDD.toString();
+                    const year = parseInt(dateStr.substring(0, 4), 10);
+                    const month = parseInt(dateStr.substring(4, 6), 10);
+                    const day = parseInt(dateStr.substring(6, 8), 10);
+                    
+                    if (year >= 1996 && year <= 2026) {
+                        row.year = year;
+                        row.month = month;
+                        row.day = day;
+                        data.push(row);
+                    }
+                }
+            }
+            
+            console.log(`Station ${stationId}: ${data.length} records geladen`);
+            return data;
+        }====================
         function parseKNMICSV(content, stationId) {
             const lines = content.split('\n');
             if (lines.length < 53) {
