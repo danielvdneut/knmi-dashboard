@@ -319,7 +319,7 @@
                     const loadPromises = stationFiles.map(async (stationId) => {
                         try {
                             // De '?t=' toevoeging dwingt de browser om de nieuwste versie te pakken
-                            const url = `https://danielvdneut.github.io/knmi-dashboard/etmgeg_${stationId}.txt?t=${new Date().getTime()}`;
+                            const url = `etmgeg_${stationId}.txt?t=${new Date().getTime()}`;
                             const response = await fetch(url);
                             
                             if (!response.ok) {
