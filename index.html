@@ -66,15 +66,15 @@
                     </div>
                     <div class="space-y-3">
                         <div class="grid grid-cols-1 gap-3">
-                            <button data-metric="TG" class="metric-btn px-4 py-3 rounded-xl text-xs font-bold bg-blue-600 text-white shadow-sm transition-all text-left flex flex-col justify-between h-16 sm:col-span-2"><span>Gemiddelde Temperatuur (24u)</span><span class="text-right w-full text-[10px] opacity-80">°C</span></button>
+                            <button data-metric="TG" class="metric-btn px-4 py-3 rounded-xl text-xs font-bold bg-blue-700 text-white shadow-sm transition-all text-left flex flex-col justify-between h-16 sm:col-span-2 hover:bg-blue-800"><span>Gemiddelde Temperatuur (24u)</span><span class="text-right w-full text-[10px] opacity-80">°C</span></button>
                         </div>
                         <div class="grid grid-cols-2 gap-3">
-                            <button data-metric="TX" class="metric-btn px-4 py-3 rounded-xl text-xs font-bold bg-white text-slate-700 border border-slate-200 shadow-sm transition-all text-left flex flex-col justify-between h-16"><span>Maximale Temp</span><span class="text-right w-full text-[10px] opacity-50">°C</span></button>
-                            <button data-metric="TN" class="metric-btn px-4 py-3 rounded-xl text-xs font-bold bg-white text-slate-700 border border-slate-200 shadow-sm transition-all text-left flex flex-col justify-between h-16"><span>Minimale Temp</span><span class="text-right w-full text-[10px] opacity-50">°C</span></button>
+                            <button data-metric="TX" class="metric-btn px-4 py-3 rounded-xl text-xs font-bold bg-slate-50 text-slate-700 border border-slate-200 shadow-sm transition-all text-left flex flex-col justify-between h-16 hover:bg-slate-100"><span>Maximale Temp</span><span class="text-right w-full text-[10px] opacity-50">°C</span></button>
+                            <button data-metric="TN" class="metric-btn px-4 py-3 rounded-xl text-xs font-bold bg-slate-50 text-slate-700 border border-slate-200 shadow-sm transition-all text-left flex flex-col justify-between h-16 hover:bg-slate-100"><span>Minimale Temp</span><span class="text-right w-full text-[10px] opacity-50">°C</span></button>
                         </div>
                         <div class="grid grid-cols-2 gap-3">
-                            <button data-metric="SQ" class="metric-btn px-4 py-3 rounded-xl text-xs font-bold bg-white text-slate-700 border border-slate-200 shadow-sm transition-all text-left flex flex-col justify-between h-16"><span>Zonuren</span><span class="text-right w-full text-[10px] opacity-50">uur</span></button>
-                            <button data-metric="RH" class="metric-btn px-4 py-3 rounded-xl text-xs font-bold bg-white text-slate-700 border border-slate-200 shadow-sm transition-all text-left flex flex-col justify-between h-16"><span>Droge Dag Kans</span><span class="text-right w-full text-[10px] opacity-50">% kans</span></button>
+                            <button data-metric="SQ" class="metric-btn px-4 py-3 rounded-xl text-xs font-bold bg-slate-50 text-slate-700 border border-slate-200 shadow-sm transition-all text-left flex flex-col justify-between h-16 hover:bg-slate-100"><span>Zonuren</span><span class="text-right w-full text-[10px] opacity-50">uur</span></button>
+                            <button data-metric="RH" class="metric-btn px-4 py-3 rounded-xl text-xs font-bold bg-slate-50 text-slate-700 border border-slate-200 shadow-sm transition-all text-left flex flex-col justify-between h-16 hover:bg-slate-100"><span>Droge Dag Kans</span><span class="text-right w-full text-[10px] opacity-50">% kans</span></button>
                         </div>
                     </div>
                 </div>
@@ -122,25 +122,25 @@
             </div>
             <div class="p-6 space-y-4 max-h-[85vh] overflow-y-auto pb-8">
                 <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
-                    <div class="bg-amber-50/60 border border-amber-100 p-3 rounded-2xl">
-                        <span class="text-[10px] uppercase font-bold text-amber-600 block">Max Temp</span>
-                        <span id="modal-tx" class="text-base font-black text-amber-900">--</span>
+                    <div class="bg-blue-50/60 border border-blue-100 p-3 rounded-2xl">
+                        <span class="text-[10px] uppercase font-bold text-blue-600 block">Max Temp</span>
+                        <span id="modal-tx" class="text-base font-black text-blue-900">--</span>
                     </div>
                     <div class="bg-blue-50/60 border border-blue-100 p-3 rounded-2xl">
                         <span class="text-[10px] uppercase font-bold text-blue-600 block">Min Temp</span>
                         <span id="modal-tn" class="text-base font-black text-blue-900">--</span>
                     </div>
-                    <div class="bg-purple-50/60 border border-purple-100 p-3 rounded-2xl">
-                        <span class="text-[10px] uppercase font-bold text-purple-600 block">Gem. Temp</span>
-                        <span id="modal-tg" class="text-base font-black text-purple-900">--</span>
+                    <div class="bg-blue-50/60 border border-blue-100 p-3 rounded-2xl">
+                        <span class="text-[10px] uppercase font-bold text-blue-600 block">Gem. Temp</span>
+                        <span id="modal-tg" class="text-base font-black text-blue-900">--</span>
                     </div>
-                    <div class="bg-yellow-50/60 border border-yellow-100 p-3 rounded-2xl">
-                        <span class="text-[10px] uppercase font-bold text-yellow-600 block">Zonneschijn</span>
-                        <span id="modal-sq" class="text-base font-black text-yellow-900">--</span>
+                    <div class="bg-amber-50/60 border border-amber-100 p-3 rounded-2xl">
+                        <span class="text-[10px] uppercase font-bold text-amber-600 block">Zonneschijn</span>
+                        <span id="modal-sq" class="text-base font-black text-amber-900">--</span>
                     </div>
-                    <div class="bg-emerald-50/60 border border-emerald-100 p-3 rounded-2xl">
-                        <span class="text-[10px] uppercase font-bold text-emerald-600 block">Kans op Droog</span>
-                        <span id="modal-dry-prob" class="text-base font-black text-emerald-900">--</span>
+                    <div class="bg-sky-50/60 border border-sky-100 p-3 rounded-2xl">
+                        <span class="text-[10px] uppercase font-bold text-sky-600 block">Kans op Droog</span>
+                        <span id="modal-dry-prob" class="text-base font-black text-sky-900">--</span>
                     </div>
                 </div>
 
@@ -681,8 +681,7 @@
             stationMarkers = {};
             Object.keys(stationCoordinates).forEach(stn => {
                 const coord = stationCoordinates[stn];
-                const isHerwijnen = parseInt(stn) === 356;
-                const markerHtml = `<div style="background-color: ${isHerwijnen ? '#2563eb' : '#a855f7'}; width: 10px; height: 10px; border-radius: 50%; border: 2px solid white; box-shadow: 0 1px 3px rgba(0,0,0,0.3);"></div>`;
+                const markerHtml = `<div style="background-color: #1e40af; width: 10px; height: 10px; border-radius: 50%; border: 2px solid white; box-shadow: 0 1px 3px rgba(0,0,0,0.3);"></div>`;
                 const customIcon = L.divIcon({
                     html: markerHtml,
                     className: 'custom-station-icon',
@@ -806,11 +805,11 @@
             buttons.forEach(btn => {
                 btn.addEventListener('click', () => {
                     buttons.forEach(b => {
-                        b.classList.remove('bg-blue-600', 'text-white', 'ring-2', 'ring-blue-600');
-                        b.classList.add('bg-white', 'text-slate-700', 'border', 'border-slate-200');
+                        b.classList.remove('bg-blue-700', 'text-white', 'ring-2', 'ring-blue-700');
+                        b.classList.add('bg-slate-50', 'text-slate-700', 'border', 'border-slate-200');
                     });
-                    btn.classList.add('bg-blue-600', 'text-white', 'ring-2', 'ring-blue-600');
-                    btn.classList.remove('bg-white', 'text-slate-700', 'border', 'border-slate-200');
+                    btn.classList.add('bg-blue-700', 'text-white', 'ring-2', 'ring-blue-700');
+                    btn.classList.remove('bg-slate-50', 'text-slate-700', 'border', 'border-slate-200');
                     currentMetric = btn.dataset.metric;
                     updateMetricDescription();
                     renderCalendar();
@@ -828,15 +827,15 @@
             if (currentMetric === 'TX' || currentMetric === 'TN' || currentMetric === 'TG') {
                 legendMin.textContent = '-5 °C';
                 legendMax.textContent = '28 °C';
-                gradient.className = "w-32 h-3 rounded-full bg-gradient-to-r from-blue-500 via-yellow-100 to-red-600";
+                gradient.className = "w-32 h-3 rounded-full bg-gradient-to-r from-blue-600 via-blue-300 to-red-500";
             } else if (currentMetric === 'SQ') {
                 legendMin.textContent = '0 uur';
                 legendMax.textContent = '14 uur';
-                gradient.className = "w-32 h-3 rounded-full bg-gradient-to-r from-stone-200 via-yellow-200 to-amber-500";
+                gradient.className = "w-32 h-3 rounded-full bg-gradient-to-r from-amber-100 via-amber-300 to-amber-600";
             } else if (currentMetric === 'RH') {
                 legendMin.textContent = '0%';
                 legendMax.textContent = '100%';
-                gradient.className = "w-32 h-3 rounded-full bg-gradient-to-r from-indigo-900 via-blue-400 to-sky-100";
+                gradient.className = "w-32 h-3 rounded-full bg-gradient-to-r from-sky-600 via-sky-300 to-sky-100";
             }
         }
 
@@ -1124,11 +1123,11 @@
             if (tgButton) {
                 const allButtons = document.querySelectorAll('.metric-btn');
                 allButtons.forEach(b => {
-                    b.classList.remove('bg-blue-600', 'text-white', 'ring-2', 'ring-blue-600');
-                    b.classList.add('bg-white', 'text-slate-700', 'border', 'border-slate-200');
+                    b.classList.remove('bg-blue-700', 'text-white', 'ring-2', 'ring-blue-700');
+                    b.classList.add('bg-slate-50', 'text-slate-700', 'border', 'border-slate-200');
                 });
-                tgButton.classList.add('bg-blue-600', 'text-white', 'ring-2', 'ring-blue-600');
-                tgButton.classList.remove('bg-white', 'text-slate-700', 'border', 'border-slate-200');
+                tgButton.classList.add('bg-blue-700', 'text-white', 'ring-2', 'ring-blue-700');
+                tgButton.classList.remove('bg-slate-50', 'text-slate-700', 'border', 'border-slate-200');
             }
         });
 
