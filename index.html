@@ -55,6 +55,7 @@
                         <span id="dashboard-instruction-text" class="text-[11px] text-slate-600 font-semibold">Laden...</span>
                         <button onclick="resetToRumpt()" class="text-[11px] font-bold text-blue-600 hover:text-blue-800 transition-colors flex items-center gap-1">Reset Naar Rumpt</button>
                     </div>
+                    <div id="station-weights-info" class="text-xs text-slate-600"></div>
                 </div>
             </div>
 
@@ -63,12 +64,18 @@
                     <div class="flex justify-between items-center mb-4">
                         <label class="text-xs font-bold uppercase tracking-wider text-slate-400 block">2. Gegevenstype</label>
                     </div>
-                    <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
-                        <button data-metric="TX" class="metric-btn px-4 py-3 rounded-xl text-xs font-bold bg-blue-600 text-white shadow-sm transition-all text-left flex flex-col justify-between h-16"><span>Max Temp</span><span class="text-right w-full text-[10px] opacity-80">degC</span></button>
-                        <button data-metric="TN" class="metric-btn px-4 py-3 rounded-xl text-xs font-bold bg-white text-slate-700 border border-slate-200 shadow-sm transition-all text-left flex flex-col justify-between h-16"><span>Min Temp</span><span class="text-right w-full text-[10px] opacity-50">degC</span></button>
-                        <button data-metric="TG" class="metric-btn px-4 py-3 rounded-xl text-xs font-bold bg-white text-slate-700 border border-slate-200 shadow-sm transition-all text-left flex flex-col justify-between h-16"><span>Gem. Temp</span><span class="text-right w-full text-[10px] opacity-50">degC</span></button>
-                        <button data-metric="SQ" class="metric-btn px-4 py-3 rounded-xl text-xs font-bold bg-white text-slate-700 border border-slate-200 shadow-sm transition-all text-left flex flex-col justify-between h-16"><span>Zonuren</span><span class="text-right w-full text-[10px] opacity-50">uur</span></button>
-                        <button data-metric="RH" class="metric-btn px-4 py-3 rounded-xl text-xs font-bold bg-white text-slate-700 border border-slate-200 shadow-sm transition-all text-left flex flex-col justify-between h-16"><span>Droge Dag Kans</span><span class="text-right w-full text-[10px] opacity-50">% kans</span></button>
+                    <div class="space-y-3">
+                        <div class="grid grid-cols-1 gap-3">
+                            <button data-metric="TG" class="metric-btn px-4 py-3 rounded-xl text-xs font-bold bg-blue-600 text-white shadow-sm transition-all text-left flex flex-col justify-between h-16 sm:col-span-2"><span>Gemiddelde Temperatuur (24u)</span><span class="text-right w-full text-[10px] opacity-80">°C</span></button>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <button data-metric="TX" class="metric-btn px-4 py-3 rounded-xl text-xs font-bold bg-white text-slate-700 border border-slate-200 shadow-sm transition-all text-left flex flex-col justify-between h-16"><span>Maximale Temp</span><span class="text-right w-full text-[10px] opacity-50">°C</span></button>
+                            <button data-metric="TN" class="metric-btn px-4 py-3 rounded-xl text-xs font-bold bg-white text-slate-700 border border-slate-200 shadow-sm transition-all text-left flex flex-col justify-between h-16"><span>Minimale Temp</span><span class="text-right w-full text-[10px] opacity-50">°C</span></button>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <button data-metric="SQ" class="metric-btn px-4 py-3 rounded-xl text-xs font-bold bg-white text-slate-700 border border-slate-200 shadow-sm transition-all text-left flex flex-col justify-between h-16"><span>Zonuren</span><span class="text-right w-full text-[10px] opacity-50">uur</span></button>
+                            <button data-metric="RH" class="metric-btn px-4 py-3 rounded-xl text-xs font-bold bg-white text-slate-700 border border-slate-200 shadow-sm transition-all text-left flex flex-col justify-between h-16"><span>Droge Dag Kans</span><span class="text-right w-full text-[10px] opacity-50">% kans</span></button>
+                        </div>
                     </div>
                 </div>
                 <div class="bg-purple-50/80 border border-purple-100 p-3 rounded-2xl text-[11px] text-purple-900 flex items-center gap-2">
@@ -81,9 +88,9 @@
         <div class="bg-white/80 backdrop-blur border border-slate-200 px-5 py-3 rounded-2xl shadow-sm flex justify-between items-center flex-wrap gap-2 text-xs">
             <span class="text-slate-500 font-medium">Kalender kleurindicatie op basis van de geselecteerde waarden:</span>
             <div class="flex items-center gap-2 font-bold text-slate-600">
-                <span id="legend-min">-5 degC</span>
+                <span id="legend-min">-5 °C</span>
                 <div id="legend-gradient" class="w-32 h-3 rounded-full bg-gradient-to-r from-blue-500 via-yellow-100 to-red-600"></div>
-                <span id="legend-max">28 degC</span>
+                <span id="legend-max">28 °C</span>
             </div>
         </div>
 
@@ -228,7 +235,7 @@
         // ==================== GLOBAL STATE ====================
         let climateData = [];
         let activeStations = new Set();
-        let currentMetric = 'TX';
+        let currentMetric = 'TG';
         let map = null;
         let stationMarkers = {};
         let targetMarker = null;
@@ -697,14 +704,61 @@
                 targetMarker.setLatLng([lat, lon]);
             } else {
                 const targetIcon = L.divIcon({
-                    html: `<span style="font-size: 24px; position: absolute; top: -24px; left: -12px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4));">Locatie</span>`,
+                    html: `<div style="width: 12px; height: 12px; background-color: #ef4444; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.4);"></div>`,
                     className: 'custom-target-icon',
-                    iconSize: [24, 24]
+                    iconSize: [12, 12]
                 });
                 targetMarker = L.marker([lat, lon], { icon: targetIcon }).addTo(map);
             }
             updateInstructionText();
+            updateStationWeightsDisplay(lat, lon);
             renderCalendar();
+        }
+        
+        function updateStationWeightsDisplay(lat, lon) {
+            if (!lat || !lon) {
+                document.getElementById('station-weights-info').innerHTML = '';
+                return;
+            }
+            
+            const weights = [];
+            Object.keys(stationCoordinates).forEach(stn => {
+                const coord = stationCoordinates[stn];
+                if (!coord) return;
+                
+                const dLat = lat - coord.lat;
+                const dLon = lon - coord.lon;
+                let distance = Math.sqrt(dLat * dLat + dLon * dLon);
+                if (distance < 0.02) distance = 0.02;
+                const weight = 1 / Math.pow(distance, 2);
+                const totalWeight = Object.keys(stationCoordinates).reduce((sum, s) => {
+                    const c = stationCoordinates[s];
+                    const dl = lat - c.lat;
+                    const dl2 = lon - c.lon;
+                    let d = Math.sqrt(dl * dl + dl2 * dl2);
+                    if (d < 0.02) d = 0.02;
+                    return sum + (1 / Math.pow(d, 2));
+                }, 0);
+                
+                const percentage = ((weight / totalWeight) * 100).toFixed(1);
+                if (parseFloat(percentage) > 1) {
+                    weights.push({ stn: parseInt(stn), name: coord.name, weight: parseFloat(percentage) });
+                }
+            });
+            
+            weights.sort((a, b) => b.weight - a.weight);
+            
+            const infoElement = document.getElementById('station-weights-info');
+            if (weights.length > 0) {
+                const topStations = weights.slice(0, 5);
+                let html = '<div class="text-xs font-bold text-slate-600 mb-1">Gebruikte stations (top 5):</div>';
+                topStations.forEach(s => {
+                    html += `<div class="text-xs text-slate-700 flex justify-between"><span>${s.name} (${s.stn})</span><span>${s.weight}%</span></div>`;
+                });
+                infoElement.innerHTML = html;
+            } else {
+                infoElement.innerHTML = '';
+            }
         }
 
         function positionRumptMarker() {
@@ -712,9 +766,9 @@
                 targetMarker.setLatLng([51.891, 5.178]);
             } else {
                 const targetIcon = L.divIcon({
-                    html: `<span style="font-size: 24px; position: absolute; top: -24px; left: -12px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4));">Locatie</span>`,
+                    html: `<div style="width: 12px; height: 12px; background-color: #ef4444; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.4);"></div>`,
                     className: 'custom-target-icon',
-                    iconSize: [24, 24]
+                    iconSize: [12, 12]
                 });
                 targetMarker = L.marker([51.891, 5.178], { icon: targetIcon }).addTo(map);
             }
@@ -726,15 +780,16 @@
             positionRumptMarker();
             map.panTo([51.891, 5.178]);
             updateInstructionText();
+            document.getElementById('station-weights-info').innerHTML = '';
             renderCalendar();
         }
 
         function updateInstructionText() {
             const instr = document.getElementById('dashboard-instruction-text');
             if (isRumptFocusMode) {
-                instr.innerHTML = `Locatie <strong>Basisstation Rumpt:</strong> Gekoppeld via ARIMA(1,0,0) Model.`;
+                instr.innerHTML = `<strong>Basisstation Rumpt (Herwijnen - 356):</strong> Gekoppeld via ARIMA(1,0,0) Model.`;
             } else if (clickedLocation) {
-                instr.innerHTML = `Wereld <strong>Vrije Locatie:</strong> IDW 30-jarig Gemiddelde omliggende stations.`;
+                instr.innerHTML = `<strong>Vrije Locatie:</strong> IDW 30-jarig Gemiddelde omliggende stations.`;
             }
         }
 
@@ -751,11 +806,11 @@
             buttons.forEach(btn => {
                 btn.addEventListener('click', () => {
                     buttons.forEach(b => {
-                        b.classList.remove('bg-blue-600', 'text-white');
-                        b.classList.add('bg-white', 'text-slate-700', 'border');
+                        b.classList.remove('bg-blue-600', 'text-white', 'ring-2', 'ring-blue-600');
+                        b.classList.add('bg-white', 'text-slate-700', 'border', 'border-slate-200');
                     });
-                    btn.classList.add('bg-blue-600', 'text-white');
-                    btn.classList.remove('bg-white', 'text-slate-700', 'border');
+                    btn.classList.add('bg-blue-600', 'text-white', 'ring-2', 'ring-blue-600');
+                    btn.classList.remove('bg-white', 'text-slate-700', 'border', 'border-slate-200');
                     currentMetric = btn.dataset.metric;
                     updateMetricDescription();
                     renderCalendar();
@@ -771,8 +826,8 @@
             const gradient = document.getElementById('legend-gradient');
             
             if (currentMetric === 'TX' || currentMetric === 'TN' || currentMetric === 'TG') {
-                legendMin.textContent = '-5 degC';
-                legendMax.textContent = '28 degC';
+                legendMin.textContent = '-5 °C';
+                legendMax.textContent = '28 °C';
                 gradient.className = "w-32 h-3 rounded-full bg-gradient-to-r from-blue-500 via-yellow-100 to-red-600";
             } else if (currentMetric === 'SQ') {
                 legendMin.textContent = '0 uur';
@@ -868,7 +923,7 @@
         }
 
         function getMetricUnit() {
-            if (currentMetric === 'TX' || currentMetric === 'TN' || currentMetric === 'TG') return 'degC';
+            if (currentMetric === 'TX' || currentMetric === 'TN' || currentMetric === 'TG') return '°C';
             if (currentMetric === 'SQ') return 'u';
             return '%';
         }
@@ -903,14 +958,14 @@
             // Pas de ondertitel in het venster dynamisch aan op basis van de geselecteerde modus
             const stationSub = document.getElementById('modal-station-count');
             if (isRumptFocusMode) {
-                stationSub.innerHTML = `Voorspel <span>ARIMA-Prognose Rumpt (Statistisch Model)</span>`;
+                stationSub.innerHTML = `<span>ARIMA-Prognose Rumpt (Herwijnen - 356)</span>`;
             } else {
-                stationSub.innerHTML = `Wereld <span>30-jarig IDW-gemiddelde van gekozen locatie</span>`;
+                stationSub.innerHTML = `<span>IDW 30-jarig Gemiddelde omliggende stations</span>`;
             }
 
-            document.getElementById('modal-tx').textContent = `${stats.TX} degC`;
-            document.getElementById('modal-tn').textContent = `${stats.TN} degC`;
-            document.getElementById('modal-tg').textContent = `${stats.TG} degC`;
+            document.getElementById('modal-tx').textContent = `${stats.TX} °C`;
+            document.getElementById('modal-tn').textContent = `${stats.TN} °C`;
+            document.getElementById('modal-tg').textContent = `${stats.TG} °C`;
             document.getElementById('modal-sq').textContent = `${stats.SQ} uur`;
             const dryProb = Math.round(stats.dryDayProbability);
             document.getElementById('modal-dry-prob').textContent = `${dryProb}%`;
@@ -983,15 +1038,15 @@
                 detailChart.destroy();
             }
             
-            let labelName = "Max Temp (degC)";
+            let labelName = "Max Temp (°C)";
             let borderColor = "#f59e0b";
             let bgColor = "rgba(245, 158, 11, 0.1)";
             if (currentChartMetric === 'TN') {
-                labelName = "Min Temp (degC)";
+                labelName = "Min Temp (°C)";
                 borderColor = "#3b82f6";
                 bgColor = "rgba(59, 130, 246, 0.1)";
             } else if (currentChartMetric === 'TG') {
-                labelName = "Gem. Temp (degC)";
+                labelName = "Gem. Temp (°C)";
                 borderColor = "#8b5cf6";
                 bgColor = "rgba(139, 92, 246, 0.1)";
             } else if (currentChartMetric === 'SQ') {
@@ -1063,6 +1118,18 @@
             setupMetricListeners();
             setupModalClosing();
             positionRumptMarker();
+            
+            // Zet TG-knop standaard actief
+            const tgButton = document.querySelector('[data-metric="TG"]');
+            if (tgButton) {
+                const allButtons = document.querySelectorAll('.metric-btn');
+                allButtons.forEach(b => {
+                    b.classList.remove('bg-blue-600', 'text-white', 'ring-2', 'ring-blue-600');
+                    b.classList.add('bg-white', 'text-slate-700', 'border', 'border-slate-200');
+                });
+                tgButton.classList.add('bg-blue-600', 'text-white', 'ring-2', 'ring-blue-600');
+                tgButton.classList.remove('bg-white', 'text-slate-700', 'border', 'border-slate-200');
+            }
         });
 
         function updateDashboard() {
