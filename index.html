@@ -81,6 +81,10 @@
                             <button data-metric="SQ" class="metric-btn px-4 py-3 rounded-xl text-xs font-bold bg-slate-50 text-slate-700 border border-slate-200 shadow-sm transition-all text-left flex flex-col justify-between h-16 hover:bg-slate-100"><span>Zonuren</span><span class="text-right w-full text-[10px] opacity-50">uur</span></button>
                             <button data-metric="RH" class="metric-btn px-4 py-3 rounded-xl text-xs font-bold bg-slate-50 text-slate-700 border border-slate-200 shadow-sm transition-all text-left flex flex-col justify-between h-16 hover:bg-slate-100"><span>Droge Dag Kans</span><span class="text-right w-full text-[10px] opacity-50">% kans</span></button>
                         </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <button data-metric="EV24" class="metric-btn px-4 py-3 rounded-xl text-xs font-bold bg-slate-50 text-slate-700 border border-slate-200 shadow-sm transition-all text-left flex flex-col justify-between h-16 hover:bg-slate-100"><span>Verdamping</span><span class="text-right w-full text-[10px] opacity-50">mm</span></button>
+                            <button data-metric="FHX" class="metric-btn px-4 py-3 rounded-xl text-xs font-bold bg-slate-50 text-slate-700 border border-slate-200 shadow-sm transition-all text-left flex flex-col justify-between h-16 hover:bg-slate-100"><span>Max Windkracht</span><span class="text-right w-full text-[10px] opacity-50">m/s</span></button>
+                        </div>
                     </div>
                 </div>
                 <div class="bg-purple-50/80 border border-purple-100 p-3 rounded-2xl text-[11px] text-purple-900 flex items-center gap-2">
@@ -147,6 +151,18 @@
                         <span class="text-[10px] uppercase font-bold text-sky-600 block">Kans op Droog</span>
                         <span id="modal-dry-prob" class="text-base font-black text-sky-900">--</span>
                     </div>
+                    <div class="bg-cyan-50/60 border border-cyan-100 p-3 rounded-2xl">
+                        <span class="text-[10px] uppercase font-bold text-cyan-600 block">Verdamping</span>
+                        <span id="modal-ev24" class="text-base font-black text-cyan-900">--</span>
+                    </div>
+                    <div class="bg-rose-50/60 border border-rose-100 p-3 rounded-2xl">
+                        <span class="text-[10px] uppercase font-bold text-rose-600 block">Max Windkracht</span>
+                        <span id="modal-fhx" class="text-base font-black text-rose-900">--</span>
+                    </div>
+                    <div class="bg-indigo-50/60 border border-indigo-100 p-3 rounded-2xl">
+                        <span class="text-[10px] uppercase font-bold text-indigo-600 block">Windrichting</span>
+                        <span id="modal-ddvec" class="text-base font-black text-indigo-900">--</span>
+                    </div>
                 </div>
 
                 <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4">
@@ -180,6 +196,8 @@
                             <button onclick="switchChartMetric('TN')" id="tab-TN" class="px-2 py-1 rounded-lg transition-colors text-slate-600 hover:text-slate-900">Min Temp</button>
                             <button onclick="switchChartMetric('SQ')" id="tab-SQ" class="px-2 py-1 rounded-lg transition-colors text-slate-600 hover:text-slate-900">Zonuren</button>
                             <button onclick="switchChartMetric('RH')" id="tab-RH" class="px-2 py-1 rounded-lg transition-colors text-slate-600 hover:text-slate-900">Neerslagsom</button>
+                            <button onclick="switchChartMetric('EV24')" id="tab-EV24" class="px-2 py-1 rounded-lg transition-colors text-slate-600 hover:text-slate-900">Verdamping</button>
+                            <button onclick="switchChartMetric('FHX')" id="tab-FHX" class="px-2 py-1 rounded-lg transition-colors text-slate-600 hover:text-slate-900">Windkracht</button>
                         </div>
                     </div>
                     <div class="w-full h-48 relative">
@@ -235,7 +253,9 @@
             TN: { icon: "Min Temp", text: "Prognose om vorstperiodes of zachte nachten in kaart te brengen." },
             TG: { icon: "Gem. Temp", text: "Prognose berekend uit historische daggemiddelden." },
             SQ: { icon: "Zonuren", text: "Verwachte zonneschijn berekend uit historische bewolkingspatronen." },
-            RH: { icon: "Droge Dag Kans", text: "Kans dat een dag volledig droog blijft." }
+            RH: { icon: "Droge Dag Kans", text: "Kans dat een dag volledig droog blijft." },
+            EV24: { icon: "Verdamping", text: "Referentiegewasverdamping (Makkink). Hoe hoger, hoe meer water gewassen nodig hebben." },
+            FHX: { icon: "Max Windkracht", text: "Hoogste uurgemiddelde windsnelheid. Belangrijk voor kwetsbare planten en constructies." }
         };
 
         // ==================== GLOBAL STATE ====================
@@ -502,6 +522,35 @@
             climateData = data;
         }
 
+        // ==================== WIND DIRECTION HELPERS ====================
+        function calculateAverageWindDirection(directions) {
+            // Wind direction is circular (0-360 degrees), so we need special averaging
+            // Using vector component method
+            if (!directions || directions.length === 0) return 0;
+            
+            let sumSin = 0, sumCos = 0;
+            const validDirections = directions.filter(d => d !== null && d !== undefined && !isNaN(d));
+            
+            if (validDirections.length === 0) return 0;
+            
+            for (const dir of validDirections) {
+                const radians = dir * Math.PI / 180;
+                sumSin += Math.sin(radians);
+                sumCos += Math.cos(radians);
+            }
+            
+            const avgSin = sumSin / validDirections.length;
+            const avgCos = sumCos / validDirections.length;
+            
+            // Calculate the average angle
+            let avgAngle = Math.atan2(avgSin, avgCos) * 180 / Math.PI;
+            
+            // Normalize to 0-360 range
+            if (avgAngle < 0) avgAngle += 360;
+            
+            return Math.round(avgAngle);
+        }
+
         // ==================== ARIMA PREDICTION ====================
         function predictArimaYear31(values) {
             if (values.length < 5) return 0;
@@ -554,7 +603,7 @@
         // ==================== DATA AGGREGATION ====================
         function getAggregatedDataForDay(month, day) {
             if (climateData.length === 0) {
-                return { TX: 0, TN: 0, TG: 0, SQ: 0, RH: 0, dryDayProbability: 100, rainDuration: 0, heavyRainProb: 0 };
+                return { TX: 0, TN: 0, TG: 0, SQ: 0, RH: 0, EV24: 0, FHX: 0, DDVEC: 0, dryDayProbability: 100, rainDuration: 0, heavyRainProb: 0 };
             }
             
             const maxYear = climateData.reduce((max, d) => (d.year > max ? d.year : max), 2026);
@@ -564,7 +613,7 @@
                 : climateData.filter(d => activeStations.has(d.STN) && d.month === month && d.day === day && d.year >= (maxYear - 30));
             
             if (filtered.length === 0) {
-                return { TX: 0, TN: 0, TG: 0, SQ: 0, RH: 0, dryDayProbability: 100, rainDuration: 0, heavyRainProb: 0 };
+                return { TX: 0, TN: 0, TG: 0, SQ: 0, RH: 0, EV24: 0, FHX: 0, DDVEC: 0, dryDayProbability: 100, rainDuration: 0, heavyRainProb: 0 };
             }
             
             if (clickedLocation && !isRumptFocusMode) {
@@ -572,12 +621,21 @@
                     filtered.map(f => ({...f, RH: f.RH <= 0 ? 100 : 0})), 
                     'RH'
                 );
+                // Bereken gemiddelde windrichting (DDVEC) voor IDW
+                const windDirections = filtered.map(f => f.DDVEC).filter(d => d !== undefined && !isNaN(d));
+                const avgWindDirection = windDirections.length > 0 
+                    ? calculateAverageWindDirection(windDirections) 
+                    : 0;
+                
                 return {
                     TX: calculateMapIDW(filtered, 'TX'),
                     TN: calculateMapIDW(filtered, 'TN'),
                     TG: calculateMapIDW(filtered, 'TG'),
                     SQ: calculateMapIDW(filtered, 'SQ'),
                     RH: rawDryProb,
+                    EV24: calculateMapIDW(filtered, 'EV24'),
+                    FHX: calculateMapIDW(filtered, 'FHX'),
+                    DDVEC: avgWindDirection,
                     dryDayProbability: rawDryProb,
                     rainDuration: calculateMapIDW(filtered, 'DR'),
                     rainAmountIfWet: calculateMapIDW(filtered, 'RH'),
@@ -592,7 +650,7 @@
             const yearlyData = {};
             filtered.forEach(d => {
                 if (!yearlyData[d.year]) {
-                    yearlyData[d.year] = { TX: [], TN: [], TG: [], SQ: [], RH: [], DR: [], RHX: [] };
+                    yearlyData[d.year] = { TX: [], TN: [], TG: [], SQ: [], RH: [], DR: [], RHX: [], EV24: [], FHX: [], DDVEC: [] };
                 }
                 yearlyData[d.year].TX.push(d.TX || 0);
                 yearlyData[d.year].TN.push(d.TN || 0);
@@ -601,6 +659,9 @@
                 yearlyData[d.year].RH.push(d.RH || 0);
                 yearlyData[d.year].DR.push(d.DR || 0);
                 yearlyData[d.year].RHX.push(d.RHX || 0);
+                yearlyData[d.year].EV24.push(d.EV24 || 0);
+                yearlyData[d.year].FHX.push(d.FHX || 0);
+                yearlyData[d.year].DDVEC.push(d.DDVEC || 0);
             });
             
             const sortedYears = Object.keys(yearlyData).map(Number).sort((a, b) => a - b);
@@ -608,6 +669,9 @@
             const tnTimeline = sortedYears.map(yr => getAverage(yearlyData[yr].TN));
             const tgTimeline = sortedYears.map(yr => getAverage(yearlyData[yr].TG));
             const sqTimeline = sortedYears.map(yr => getAverage(yearlyData[yr].SQ));
+            const ev24Timeline = sortedYears.map(yr => getAverage(yearlyData[yr].EV24));
+            const fhxTimeline = sortedYears.map(yr => getAverage(yearlyData[yr].FHX));
+            const ddvecTimeline = sortedYears.map(yr => calculateAverageWindDirection(yearlyData[yr].DDVEC));
             const dryDaysTimeline = sortedYears.map(yr => (getAverage(yearlyData[yr].RH) <= 0) ? 100 : 0);
             const rainAmountTimeline = sortedYears.map(yr => getAverage(yearlyData[yr].RH));
             const drTimeline = sortedYears.map(yr => getAverage(yearlyData[yr].DR));
@@ -618,6 +682,9 @@
                 TN: predictArimaYear31(tnTimeline),
                 TG: predictArimaYear31(tgTimeline),
                 SQ: predictArimaYear31(sqTimeline),
+                EV24: predictArimaYear31(ev24Timeline),
+                FHX: predictArimaYear31(fhxTimeline),
+                DDVEC: predictArimaYear31(ddvecTimeline),
                 RH: Math.max(0, Math.min(100, predictArimaYear31(dryDaysTimeline))),
                 dryDayProbability: Math.max(0, Math.min(100, predictArimaYear31(dryDaysTimeline))),
                 rainDuration: Math.max(0, predictArimaYear31(drTimeline)),
@@ -840,6 +907,14 @@
                 legendMin.textContent = '0%';
                 legendMax.textContent = '100%';
                 gradient.className = "w-32 h-3 rounded-full bg-gradient-to-r from-sky-600 via-sky-300 to-sky-100";
+            } else if (currentMetric === 'EV24') {
+                legendMin.textContent = '0 mm';
+                legendMax.textContent = '8 mm';
+                gradient.className = "w-32 h-3 rounded-full bg-gradient-to-r from-blue-100 via-blue-300 to-blue-600";
+            } else if (currentMetric === 'FHX') {
+                legendMin.textContent = '0 m/s';
+                legendMax.textContent = '15 m/s';
+                gradient.className = "w-32 h-3 rounded-full bg-gradient-to-r from-red-100 via-red-300 to-red-600";
             }
         }
 
@@ -928,6 +1003,8 @@
         function getMetricUnit() {
             if (currentMetric === 'TX' || currentMetric === 'TN' || currentMetric === 'TG') return '°C';
             if (currentMetric === 'SQ') return 'u';
+            if (currentMetric === 'EV24') return 'mm';
+            if (currentMetric === 'FHX') return 'm/s';
             return '%';
         }
 
@@ -944,6 +1021,14 @@
             } else if (currentMetric === 'RH') {
                 const p = Math.min(100, Math.max(0, val));
                 return `rgba(30, 58, 138, ${1 - (p / 100)})`;
+            } else if (currentMetric === 'EV24') {
+                // Blauwe gradient voor verdamping (0-8 mm)
+                const p = Math.min(100, Math.max(0, val / 8 * 100));
+                return `rgba(59, 130, 246, ${0.1 + (p / 100 * 0.9)})`;
+            } else if (currentMetric === 'FHX') {
+                // Rode gradient voor windkracht (0-15 m/s)
+                const p = Math.min(100, Math.max(0, val / 15 * 100));
+                return `rgba(239, 68, 68, ${0.1 + (p / 100 * 0.9)})`;
             }
             return 'rgba(255,255,255,0.9)';
         }
@@ -951,6 +1036,7 @@
         function getTextColorForBackground(val) {
             if (currentMetric === 'TX' || currentMetric === 'TN' || currentMetric === 'TG') return val > 22 || val < -2 ? '#ffffff' : '#1e293b';
             if (currentMetric === 'RH') return val < 40 ? '#ffffff' : '#1e293b';
+            if (currentMetric === 'FHX') return val > 8 ? '#ffffff' : '#1e293b';
             return '#1e293b';
         }
 
@@ -966,10 +1052,13 @@
                 stationSub.innerHTML = `<span>IDW 30-jarig Gemiddelde omliggende stations</span>`;
             }
 
-            document.getElementById('modal-tx').textContent = `${stats.TX} °C`;
-            document.getElementById('modal-tn').textContent = `${stats.TN} °C`;
-            document.getElementById('modal-tg').textContent = `${stats.TG} °C`;
-            document.getElementById('modal-sq').textContent = `${stats.SQ} uur`;
+            document.getElementById('modal-tx').textContent = `${stats.TX.toFixed(1)} °C`;
+            document.getElementById('modal-tn').textContent = `${stats.TN.toFixed(1)} °C`;
+            document.getElementById('modal-tg').textContent = `${stats.TG.toFixed(1)} °C`;
+            document.getElementById('modal-sq').textContent = `${stats.SQ.toFixed(1)} uur`;
+            document.getElementById('modal-ev24').textContent = `${stats.EV24.toFixed(1)} mm`;
+            document.getElementById('modal-fhx').textContent = `${stats.FHX.toFixed(1)} m/s`;
+            document.getElementById('modal-ddvec').textContent = `${getWindDirectionName(stats.DDVEC)}`;
             const dryProb = Math.round(stats.dryDayProbability);
             document.getElementById('modal-dry-prob').textContent = `${dryProb}%`;
             document.getElementById('modal-rain-prob').textContent = `${100 - dryProb}%`;
@@ -997,6 +1086,12 @@
                     ? "px-2 py-1 rounded-lg transition-colors bg-white text-slate-800 shadow-sm"
                     : "px-2 py-1 rounded-lg transition-colors text-slate-600 hover:text-slate-900";
             });
+        }
+
+        function getWindDirectionName(degrees) {
+            const directions = ['N', 'NNO', 'NO', 'ONO', 'O', 'OZO', 'ZO', 'ZZO', 'Z', 'ZZW', 'ZW', 'WZW', 'W', 'WNW', 'NW', 'NNW'];
+            const index = Math.round(degrees / 22.5) % 16;
+            return directions[index];
         }
 
         function buildHistoricalChart() {
@@ -1064,6 +1159,14 @@
                 labelName = "Neerslagsom (mm)";
                 borderColor = "#0ea5e9";
                 bgColor = "rgba(14, 165, 233, 0.1)";
+            } else if (currentChartMetric === 'EV24') {
+                labelName = "Verdamping (mm)";
+                borderColor = "#06b6d4";
+                bgColor = "rgba(6, 182, 212, 0.1)";
+            } else if (currentChartMetric === 'FHX') {
+                labelName = "Max Windkracht (m/s)";
+                borderColor = "#e52147";
+                bgColor = "rgba(229, 33, 71, 0.1)";
             }
             
             const ctx = document.getElementById('historyChart').getContext('2d');
