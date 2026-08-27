@@ -123,14 +123,18 @@
     <div id="day-detail-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
         <div class="bg-white rounded-3xl shadow-2xl max-w-2xl w-full border border-slate-200 overflow-hidden">
             <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
-                <div>
-                    <h4 id="modal-date-title" class="text-lg font-black text-slate-900">Dag Details</h4>
-                    <p id="modal-station-count" class="text-xs text-slate-500 font-semibold mt-0.5">Rumpt & Omgeving</p>
+                <div class="flex items-center gap-2">
+                    <button onclick="navigateDay(-1)" class="text-slate-400 hover:text-slate-600 text-lg font-bold bg-white w-8 h-8 rounded-full border shadow-sm flex items-center justify-center">&larr;</button>
+                    <div>
+                        <h4 id="modal-date-title" class="text-lg font-black text-slate-900">Dag Details</h4>
+                        <p id="modal-station-count" class="text-xs text-slate-500 font-semibold mt-0.5">Rumpt & Omgeving</p>
+                    </div>
+                    <button onclick="navigateDay(1)" class="text-slate-400 hover:text-slate-600 text-lg font-bold bg-white w-8 h-8 rounded-full border shadow-sm flex items-center justify-center">&rarr;</button>
                 </div>
                 <button onclick="closeDayDetail()" class="text-slate-400 hover:text-slate-600 text-xl font-bold bg-white w-8 h-8 rounded-full border shadow-sm flex items-center justify-center">&times;</button>
             </div>
             <div class="p-6 space-y-4 max-h-[85vh] overflow-y-auto pb-8">
-                <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
                     <div class="bg-blue-50/60 border border-blue-100 p-3 rounded-2xl">
                         <span class="text-[10px] uppercase font-bold text-blue-600 block">Max Temp</span>
                         <span id="modal-tx" class="text-base font-black text-blue-900">--</span>
@@ -147,6 +151,8 @@
                         <span class="text-[10px] uppercase font-bold text-amber-600 block">Zonneschijn</span>
                         <span id="modal-sq" class="text-base font-black text-amber-900">--</span>
                     </div>
+                </div>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
                     <div class="bg-sky-50/60 border border-sky-100 p-3 rounded-2xl">
                         <span class="text-[10px] uppercase font-bold text-sky-600 block">Kans op Droog</span>
                         <span id="modal-dry-prob" class="text-base font-black text-sky-900">--</span>
@@ -163,6 +169,7 @@
                         <span class="text-[10px] uppercase font-bold text-indigo-600 block">Windrichting</span>
                         <span id="modal-ddvec" class="text-base font-black text-indigo-900">--</span>
                     </div>
+                </div>
                 </div>
 
                 <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4">
@@ -271,6 +278,8 @@
         let cachedModalRawData = null;
         let currentChartMetric = 'TG';
         let dataLoadingPromise = null;
+        let currentModalMonth = null;
+        let currentModalDay = null;
 
         function parseKNMICSV(content, stationId) {
             const lines = content.split('\n');
@@ -1042,6 +1051,8 @@
 
         // ==================== MODAL FUNCTIONS ====================
         function openDayDetail(month, day, stats, monthName) {
+            currentModalMonth = month;
+            currentModalDay = day;
             document.getElementById('modal-date-title').textContent = `${day} ${monthName}`;
             
             // Pas de ondertitel in het venster dynamisch aan op basis van de geselecteerde modus
@@ -1200,6 +1211,36 @@
 
         function closeDayDetail() {
             document.getElementById('day-detail-modal').classList.add('hidden');
+        }
+
+        function navigateDay(direction) {
+            if (!currentModalMonth || !currentModalDay) return;
+            
+            // Get current date
+            let newDay = currentModalDay + direction;
+            let newMonth = currentModalMonth;
+            
+            // Handle month/year boundaries
+            const monthNames = ["Januari", "Februari", "Maart", "April", "Mei", "Juni", "Juli", "Augustus", "September", "Oktober", "November", "December"];
+            const daysInMonth = new Date(2026, newMonth, 0).getDate();
+            
+            if (newDay < 1) {
+                // Go to previous month
+                newMonth--;
+                if (newMonth < 1) newMonth = 12;
+                newDay = new Date(2026, newMonth, 0).getDate();
+            } else if (newDay > daysInMonth) {
+                // Go to next month
+                newDay = 1;
+                newMonth++;
+                if (newMonth > 12) newMonth = 1;
+            }
+            
+            // Get stats for the new day
+            const stats = getAggregatedDataForDay(newMonth, newDay);
+            
+            // Open the modal for the new day
+            openDayDetail(newMonth, newDay, stats, monthNames[newMonth - 1]);
         }
 
         function setupModalClosing() {
