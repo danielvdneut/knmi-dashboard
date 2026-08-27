@@ -128,6 +128,7 @@
                     <div>
                         <h4 id="modal-date-title" class="text-lg font-black text-slate-900">Dag Details</h4>
                         <p id="modal-station-count" class="text-xs text-slate-500 font-semibold mt-0.5">Rumpt & Omgeving</p>
+                        <p id="modal-prediction-year" class="text-xs text-purple-600 font-bold mt-0.5">Voorspelling voor: <span id="prediction-year-value">--</span></p>
                     </div>
                     <button onclick="navigateDay(1)" class="text-slate-400 hover:text-slate-600 text-lg font-bold bg-white w-8 h-8 rounded-full border shadow-sm flex items-center justify-center">&rarr;</button>
                 </div>
@@ -615,11 +616,22 @@
                 return { TX: 0, TN: 0, TG: 0, SQ: 0, RH: 0, EV24: 0, FHX: 0, DDVEC: 0, dryDayProbability: 100, rainDuration: 0, heavyRainProb: 0 };
             }
             
-            const maxYear = climateData.reduce((max, d) => (d.year > max ? d.year : max), 2026);
+            // Find the latest year that has data for this specific month/day
+            const availableYears = climateData
+                .filter(d => d.month === month && d.day === day)
+                .map(d => d.year);
             
+            if (availableYears.length === 0) {
+                return { TX: 0, TN: 0, TG: 0, SQ: 0, RH: 0, EV24: 0, FHX: 0, DDVEC: 0, dryDayProbability: 100, rainDuration: 0, heavyRainProb: 0 };
+            }
+            
+            const latestYearWithData = Math.max(...availableYears);
+            const startYear = Math.max(1996, latestYearWithData - 30);
+            
+            // Filter data for the last 30 years (or as many as available) for this day
             let filtered = isRumptFocusMode
-                ? climateData.filter(d => d.STN === 356 && d.month === month && d.day === day && d.year >= (maxYear - 30))
-                : climateData.filter(d => activeStations.has(d.STN) && d.month === month && d.day === day && d.year >= (maxYear - 30));
+                ? climateData.filter(d => d.STN === 356 && d.month === month && d.day === day && d.year >= startYear && d.year <= latestYearWithData)
+                : climateData.filter(d => activeStations.has(d.STN) && d.month === month && d.day === day && d.year >= startYear && d.year <= latestYearWithData);
             
             if (filtered.length === 0) {
                 return { TX: 0, TN: 0, TG: 0, SQ: 0, RH: 0, EV24: 0, FHX: 0, DDVEC: 0, dryDayProbability: 100, rainDuration: 0, heavyRainProb: 0 };
@@ -652,7 +664,8 @@
                         filtered.map(f => ({...f, RHX: f.RHX >= 5 ? 100 : 0})), 
                         'RHX'
                     ),
-                    _rawFilteredData: filtered
+                    _rawFilteredData: filtered,
+                    _predictionYear: latestYearWithData + 1
                 };
             }
             
@@ -699,7 +712,8 @@
                 rainDuration: Math.max(0, predictArimaYear31(drTimeline)),
                 rainAmountIfWet: Math.max(0, predictArimaYear31(rainAmountTimeline)),
                 heavyRainProb: Math.max(0, Math.min(100, predictArimaYear31(heavyRainTimeline))),
-                _rawFilteredData: filtered
+                _rawFilteredData: filtered,
+                _predictionYear: latestYearWithData + 1
             };
         }
 
@@ -1070,6 +1084,10 @@
             document.getElementById('modal-ev24').textContent = `${stats.EV24.toFixed(1)} mm`;
             document.getElementById('modal-fhx').textContent = `${stats.FHX.toFixed(1)} m/s`;
             document.getElementById('modal-ddvec').textContent = `${getWindDirectionName(stats.DDVEC)}`;
+            
+            // Toon het voorspeljaar
+            const predictionYear = stats._predictionYear || latestYearWithData + 1;
+            document.getElementById('prediction-year-value').textContent = predictionYear;
             const dryProb = Math.round(stats.dryDayProbability);
             document.getElementById('modal-dry-prob').textContent = `${dryProb}%`;
             document.getElementById('modal-rain-prob').textContent = `${100 - dryProb}%`;
