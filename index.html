@@ -78,11 +78,11 @@
                             <button data-metric="TN" class="metric-btn px-4 py-3 rounded-xl text-xs font-bold bg-slate-50 text-slate-700 border border-slate-200 shadow-sm transition-all text-left flex flex-col justify-between h-16 hover:bg-slate-100"><span>Minimale Temp</span><span class="text-right w-full text-[10px] opacity-50">°C</span></button>
                         </div>
                         <div class="grid grid-cols-2 gap-3">
-                            <button data-metric="SQ" class="metric-btn px-4 py-3 rounded-xl text-xs font-bold bg-slate-50 text-slate-700 border border-slate-200 shadow-sm transition-all text-left flex flex-col justify-between h-16 hover:bg-slate-100"><span>Zon</span><span class="text-right w-full text-[10px] opacity-50">uur</span></button>
+                            <button data-metric="SQ" class="metric-btn px-4 py-3 rounded-xl text-xs font-bold bg-slate-50 text-slate-700 border border-slate-200 shadow-sm transition-all text-left flex flex-col justify-between h-16 hover:bg-slate-100"><span>Zonuren</span><span class="text-right w-full text-[10px] opacity-50">uur</span></button>
                             <button data-metric="RH" class="metric-btn px-4 py-3 rounded-xl text-xs font-bold bg-slate-50 text-slate-700 border border-slate-200 shadow-sm transition-all text-left flex flex-col justify-between h-16 hover:bg-slate-100"><span>Droge Dag Kans</span><span class="text-right w-full text-[10px] opacity-50">% kans</span></button>
                         </div>
                         <div class="grid grid-cols-2 gap-3">
-                            <button data-metric="EV24" class="metric-btn px-4 py-3 rounded-xl text-xs font-bold bg-slate-50 text-slate-700 border border-slate-200 shadow-sm transition-all text-left flex flex-col justify-between h-16 hover:bg-slate-100"><span>Verd</span><span class="text-right w-full text-[10px] opacity-50">mm</span></button>
+                            <button data-metric="EV24" class="metric-btn px-4 py-3 rounded-xl text-xs font-bold bg-slate-50 text-slate-700 border border-slate-200 shadow-sm transition-all text-left flex flex-col justify-between h-16 hover:bg-slate-100"><span>Verdamping</span><span class="text-right w-full text-[10px] opacity-50">mm</span></button>
                             <button data-metric="FHX" class="metric-btn px-4 py-3 rounded-xl text-xs font-bold bg-slate-50 text-slate-700 border border-slate-200 shadow-sm transition-all text-left flex flex-col justify-between h-16 hover:bg-slate-100"><span>Max Windkracht</span><span class="text-right w-full text-[10px] opacity-50">m/s</span></button>
                         </div>
                     </div>
@@ -134,81 +134,81 @@
                 </div>
                 <button onclick="closeDayDetail()" class="text-slate-400 hover:text-slate-600 text-base sm:text-xl font-bold bg-white w-6 h-6 sm:w-8 sm:h-8 rounded-full border shadow-sm flex items-center justify-center">&times;</button>
             </div>
-            <div class="p-3 sm:p-4 space-y-2 sm:space-y-3 max-h-[calc(95vh-100px)] sm:max-h-[calc(95vh-120px)] overflow-y-auto">
-                <div class="grid grid-cols-2 gap-1 sm:gap-2">
-                    <div class="bg-blue-50/60 border border-blue-100 p-1.5 sm:p-2 rounded-lg sm:rounded-xl">
-                        <span class="text-[7px] sm:text-[8px] uppercase font-bold text-blue-600 block">MaxT</span>
-                        <span id="modal-tx" class="text-xs sm:text-sm font-black text-blue-900">--</span>
+            <div class="p-4 sm:p-6 space-y-3 sm:space-y-4 max-h-[calc(95vh-120px)] sm:max-h-[calc(95vh-140px)] overflow-y-auto pb-8">
+                <div class="grid grid-cols-2 gap-2 sm:gap-3">
+                    <div class="bg-blue-50/60 border border-blue-100 p-2 sm:p-3 rounded-xl sm:rounded-2xl">
+                        <span class="text-[10px] uppercase font-bold text-blue-600 block">Max Temp</span>
+                        <span id="modal-tx" class="text-sm sm:text-base font-black text-blue-900">--</span>
                     </div>
-                    <div class="bg-blue-50/60 border border-blue-100 p-1.5 sm:p-2 rounded-lg sm:rounded-xl">
-                        <span class="text-[7px] sm:text-[8px] uppercase font-bold text-blue-600 block">MinT</span>
-                        <span id="modal-tn" class="text-xs sm:text-sm font-black text-blue-900">--</span>
+                    <div class="bg-blue-50/60 border border-blue-100 p-2 sm:p-3 rounded-xl sm:rounded-2xl">
+                        <span class="text-[10px] uppercase font-bold text-blue-600 block">Min Temp</span>
+                        <span id="modal-tn" class="text-sm sm:text-base font-black text-blue-900">--</span>
                     </div>
-                    <div class="bg-blue-50/60 border border-blue-100 p-1.5 sm:p-2 rounded-lg sm:rounded-xl">
-                        <span class="text-[7px] sm:text-[8px] uppercase font-bold text-blue-600 block">Gem. Temp</span>
-                        <span id="modal-tg" class="text-xs sm:text-sm font-black text-blue-900">--</span>
+                    <div class="bg-blue-50/60 border border-blue-100 p-2 sm:p-3 rounded-xl sm:rounded-2xl">
+                        <span class="text-[10px] uppercase font-bold text-blue-600 block">Gem. Temp</span>
+                        <span id="modal-tg" class="text-sm sm:text-base font-black text-blue-900">--</span>
                     </div>
-                    <div class="bg-amber-50/60 border border-amber-100 p-1.5 sm:p-2 rounded-lg sm:rounded-xl">
-                        <span class="text-[7px] sm:text-[8px] uppercase font-bold text-amber-600 block">Zonneschijn</span>
-                        <span id="modal-sq" class="text-xs sm:text-sm font-black text-amber-900">--</span>
+                    <div class="bg-amber-50/60 border border-amber-100 p-2 sm:p-3 rounded-xl sm:rounded-2xl">
+                        <span class="text-[10px] uppercase font-bold text-amber-600 block">Zonneschijn</span>
+                        <span id="modal-sq" class="text-sm sm:text-base font-black text-amber-900">--</span>
                     </div>
                 </div>
-                <div class="grid grid-cols-2 gap-1 sm:gap-2">
-                    <div class="bg-sky-50/60 border border-sky-100 p-1.5 sm:p-2 rounded-lg sm:rounded-xl">
-                        <span class="text-[7px] sm:text-[8px] uppercase font-bold text-sky-600 block">Kans op Droog</span>
-                        <span id="modal-dry-prob" class="text-xs sm:text-sm font-black text-sky-900">--</span>
+                <div class="grid grid-cols-2 gap-2 sm:gap-3">
+                    <div class="bg-sky-50/60 border border-sky-100 p-2 sm:p-3 rounded-xl sm:rounded-2xl">
+                        <span class="text-[10px] uppercase font-bold text-sky-600 block">Kans op Droog</span>
+                        <span id="modal-dry-prob" class="text-sm sm:text-base font-black text-sky-900">--</span>
                     </div>
-                    <div class="bg-cyan-50/60 border border-cyan-100 p-1.5 sm:p-2 rounded-lg sm:rounded-xl">
-                        <span class="text-[7px] sm:text-[8px] uppercase font-bold text-cyan-600 block">Verd</span>
-                        <span id="modal-ev24" class="text-xs sm:text-sm font-black text-cyan-900">--</span>
+                    <div class="bg-cyan-50/60 border border-cyan-100 p-2 sm:p-3 rounded-xl sm:rounded-2xl">
+                        <span class="text-[10px] uppercase font-bold text-cyan-600 block">Verdamping</span>
+                        <span id="modal-ev24" class="text-sm sm:text-base font-black text-cyan-900">--</span>
                     </div>
-                    <div class="bg-rose-50/60 border border-rose-100 p-1.5 sm:p-2 rounded-lg sm:rounded-xl">
-                        <span class="text-[7px] sm:text-[8px] uppercase font-bold text-rose-600 block">Max Windkracht</span>
-                        <span id="modal-fhx" class="text-xs sm:text-sm font-black text-rose-900">--</span>
+                    <div class="bg-rose-50/60 border border-rose-100 p-2 sm:p-3 rounded-xl sm:rounded-2xl">
+                        <span class="text-[10px] uppercase font-bold text-rose-600 block">Max Windkracht</span>
+                        <span id="modal-fhx" class="text-sm sm:text-base font-black text-rose-900">--</span>
                     </div>
-                    <div class="bg-indigo-50/60 border border-indigo-100 p-1.5 sm:p-2 rounded-lg sm:rounded-xl">
-                        <span class="text-[7px] sm:text-[8px] uppercase font-bold text-indigo-600 block">Windrichting</span>
-                        <span id="modal-ddvec" class="text-xs sm:text-sm font-black text-indigo-900">--</span>
+                    <div class="bg-indigo-50/60 border border-indigo-100 p-2 sm:p-3 rounded-xl sm:rounded-2xl">
+                        <span class="text-[10px] uppercase font-bold text-indigo-600 block">Windrichting</span>
+                        <span id="modal-ddvec" class="text-sm sm:text-base font-black text-indigo-900">--</span>
                     </div>
                 </div>
                 </div>
 
-                <div class="bg-slate-50 border border-slate-200 rounded-lg sm:rounded-xl p-2 sm:p-3">
-                    <span class="text-[8px] sm:text-[10px] uppercase font-bold text-slate-400 block mb-1">Voorspel Neerslag Analyse (Prognose)</span>
-                    <div class="space-y-1 text-[10px] sm:text-xs">
+                <div class="bg-slate-50 border border-slate-200 rounded-xl sm:rounded-2xl p-3 sm:p-4">
+                    <span class="text-[10px] uppercase font-bold text-slate-400 block mb-2">Voorspel Aanvullende Neerslag Analyse (Prognose)</span>
+                    <div class="space-y-2 text-xs">
                         <div class="flex justify-between border-b pb-1">
-                            <span class="text-[8px] sm:text-[10px] text-slate-500">Kans op neerslag:</span>
-                            <span id="modal-rain-prob" class="text-[8px] sm:text-[10px] font-bold text-indigo-600">--</span>
+                            <span class="text-xs text-slate-500">Kans op neerslag:</span>
+                            <span id="modal-rain-prob" class="text-xs font-bold text-indigo-600">--</span>
                         </div>
                         <div class="flex justify-between border-b pb-1">
-                            <span class="text-[8px] sm:text-[10px] text-slate-500">Verwachte regenduur:</span>
-                            <span id="modal-dr" class="text-[8px] sm:text-[10px] font-bold text-slate-800">--</span>
+                            <span class="text-xs text-slate-500">Verwachte regenduur:</span>
+                            <span id="modal-dr" class="text-xs font-bold text-slate-800">--</span>
                         </div>
                         <div class="flex justify-between border-b pb-1">
-                            <span class="text-[8px] sm:text-[10px] text-slate-500">Verwachte etmaalsom:</span>
-                            <span id="rain-amount" class="text-[8px] sm:text-[10px] font-bold text-slate-800">--</span>
+                            <span class="text-xs text-slate-500">Verwachte etmaalsom:</span>
+                            <span id="rain-amount" class="text-xs font-bold text-slate-800">--</span>
                         </div>
                         <div class="flex justify-between">
-                            <span class="text-[8px] sm:text-[10px] text-slate-500">Kans op zware bui (>5mm/u):</span>
-                            <span id="modal-heavy-prob" class="text-[8px] sm:text-[10px] font-bold text-red-600">--</span>
+                            <span class="text-xs text-slate-500">Kans op zware bui (>5mm/u):</span>
+                            <span id="modal-heavy-prob" class="text-xs font-bold text-red-600">--</span>
                         </div>
                     </div>
                 </div>
 
-                <div class="bg-white border border-slate-200 rounded-lg sm:rounded-xl p-2 sm:p-3">
-                    <div class="flex flex-col justify-between items-start gap-1 mb-1 pb-1 border-b">
-                        <span class="text-[7px] sm:text-[8px] uppercase font-bold text-slate-400 block">Grafiek Historische tijdreeks (1996-2026)</span>
-                        <div id="chart-tabs" class="flex gap-0.5 bg-slate-100 p-0.5 rounded-xl text-[10px] font-bold w-full overflow-x-auto justify-start whitespace-nowrap">
-                            <button onclick="switchChartMetric('TG')" id="tab-TG" class="px-1 py-0.5 rounded-md transition-colors bg-white text-[6px] sm:text-[7px] text-slate-800 shadow-sm flex-shrink-0">Gem.Temp</button>
-                            <button onclick="switchChartMetric('TX')" id="tab-TX" class="px-1 py-0.5 rounded-md transition-colors text-[6px] sm:text-[7px] text-slate-600 hover:text-slate-900 flex-shrink-0">MaxT</button>
-                            <button onclick="switchChartMetric('TN')" id="tab-TN" class="px-1 py-0.5 rounded-md transition-colors text-[6px] sm:text-[7px] text-slate-600 hover:text-slate-900 flex-shrink-0">MinT</button>
-                            <button onclick="switchChartMetric('SQ')" id="tab-SQ" class="px-1 py-0.5 rounded-md transition-colors text-[6px] sm:text-[7px] text-slate-600 hover:text-slate-900 flex-shrink-0">Zon</button>
-                            <button onclick="switchChartMetric('RH')" id="tab-RH" class="px-1 py-0.5 rounded-md transition-colors text-[6px] sm:text-[7px] text-slate-600 hover:text-slate-900 flex-shrink-0">Neer</button>
-                            <button onclick="switchChartMetric('EV24')" id="tab-EV24" class="px-1 py-0.5 rounded-md transition-colors text-[6px] sm:text-[7px] text-slate-600 hover:text-slate-900 flex-shrink-0">Verd</button>
-                            <button onclick="switchChartMetric('FHX')" id="tab-FHX" class="px-1 py-0.5 rounded-md transition-colors text-[6px] sm:text-[7px] text-slate-600 hover:text-slate-900 flex-shrink-0">Wind</button>
+                <div class="bg-white border border-slate-200 rounded-xl sm:rounded-2xl p-3 sm:p-4">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-2 sm:mb-3 pb-2 border-b">
+                        <span class="text-[10px] sm:text-xs uppercase font-bold text-slate-400 block">Grafiek Historische tijdreeks op deze dag (1996 - 2026)</span>
+                        <div id="chart-tabs" class="flex flex-wrap gap-1 bg-slate-100 p-1 rounded-xl text-[10px] font-bold w-full justify-center sm:justify-between">
+                            <button onclick="switchChartMetric('TG')" id="tab-TG" class="px-2 py-1 rounded-lg transition-colors bg-white text-[10px] sm:text-xs text-slate-800 shadow-sm">Gem. Temp</button>
+                            <button onclick="switchChartMetric('TX')" id="tab-TX" class="px-2 py-1 rounded-lg transition-colors text-[10px] sm:text-xs text-slate-600 hover:text-slate-900">Max Temp</button>
+                            <button onclick="switchChartMetric('TN')" id="tab-TN" class="px-2 py-1 rounded-lg transition-colors text-[10px] sm:text-xs text-slate-600 hover:text-slate-900">Min Temp</button>
+                            <button onclick="switchChartMetric('SQ')" id="tab-SQ" class="px-2 py-1 rounded-lg transition-colors text-[10px] sm:text-xs text-slate-600 hover:text-slate-900">Zonuren</button>
+                            <button onclick="switchChartMetric('RH')" id="tab-RH" class="px-2 py-1 rounded-lg transition-colors text-[10px] sm:text-xs text-slate-600 hover:text-slate-900">Neerslagsom</button>
+                            <button onclick="switchChartMetric('EV24')" id="tab-EV24" class="px-2 py-1 rounded-lg transition-colors text-[10px] sm:text-xs text-slate-600 hover:text-slate-900">Verdamping</button>
+                            <button onclick="switchChartMetric('FHX')" id="tab-FHX" class="px-2 py-1 rounded-lg transition-colors text-[10px] sm:text-xs text-slate-600 hover:text-slate-900">Windkracht</button>
                         </div>
                     </div>
-                    <div class="w-full h-24 sm:h-32 md:h-40 relative">
+                    <div class="w-full h-36 sm:h-48 md:h-56 relative">
                         <canvas id="historyChart"></canvas>
                     </div>
                 </div>
