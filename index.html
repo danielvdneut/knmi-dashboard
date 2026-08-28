@@ -123,16 +123,18 @@
     <div id="day-detail-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-2 sm:p-4">
         <div class="bg-white rounded-2xl sm:rounded-3xl shadow-2xl max-w-[95vw] sm:max-w-md md:max-w-xl lg:max-w-2xl w-full border border-slate-200 overflow-hidden max-h-[95vh]">
             <div class="p-3 sm:p-4 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-center bg-slate-50 gap-1 sm:gap-2">
-                <div class="flex items-center gap-0.5 sm:gap-2 flex-wrap justify-center sm:justify-start">
-                    <button onclick="navigateDay(-1)" class="text-slate-400 hover:text-slate-600 text-[10px] sm:text-base font-bold bg-white w-5 h-5 sm:w-6 sm:h-6 rounded-full border shadow-sm flex items-center justify-center">&larr;</button>
-                    <div class="text-center sm:text-left">
-                        <h4 id="modal-date-title" class="text-[11px] sm:text-sm font-black text-slate-900">Dag Details</h4>
-                        <p id="modal-station-count" class="text-[9px] sm:text-[10px] text-slate-500 font-semibold mt-0.5">Rumpt & Omgeving</p>
-                        <p id="modal-prediction-year" class="text-[9px] sm:text-[10px] text-purple-600 font-bold mt-0.5">Voorspelling: <span id="prediction-year-value">--</span></p>
+                <div class="flex items-center gap-0.5 sm:gap-2 flex-wrap justify-between w-full">
+                    <div class="flex items-center gap-0.5 sm:gap-2">
+                        <button onclick="navigateDay(-1)" class="text-slate-400 hover:text-slate-600 text-[10px] sm:text-base font-bold bg-white w-5 h-5 sm:w-6 sm:h-6 rounded-full border shadow-sm flex items-center justify-center">&larr;</button>
+                        <div class="text-center sm:text-left">
+                            <h4 id="modal-date-title" class="text-[11px] sm:text-sm font-black text-slate-900">Dag Details</h4>
+                            <p id="modal-station-count" class="text-[9px] sm:text-[10px] text-slate-500 font-semibold mt-0.5">Rumpt & Omgeving</p>
+                            <p id="modal-prediction-year" class="text-[9px] sm:text-[10px] text-purple-600 font-bold mt-0.5">Voorspelling: <span id="prediction-year-value">--</span></p>
+                        </div>
+                        <button onclick="navigateDay(1)" class="text-slate-400 hover:text-slate-600 text-[10px] sm:text-base font-bold bg-white w-5 h-5 sm:w-6 sm:h-6 rounded-full border shadow-sm flex items-center justify-center">&rarr;</button>
                     </div>
-                    <button onclick="navigateDay(1)" class="text-slate-400 hover:text-slate-600 text-[10px] sm:text-base font-bold bg-white w-5 h-5 sm:w-6 sm:h-6 rounded-full border shadow-sm flex items-center justify-center">&rarr;</button>
+                    <button onclick="closeDayDetail()" class="text-slate-400 hover:text-slate-600 text-[10px] sm:text-base font-bold bg-white w-5 h-5 sm:w-6 sm:h-6 rounded-full border shadow-sm flex items-center justify-center flex-shrink-0">&times;</button>
                 </div>
-                <button onclick="closeDayDetail()" class="text-slate-400 hover:text-slate-600 text-[10px] sm:text-base font-bold bg-white w-5 h-5 sm:w-6 sm:h-6 rounded-full border shadow-sm flex items-center justify-center">&times;</button>
             </div>
             <div class="p-3 sm:p-4 space-y-2 sm:space-y-3 max-h-[calc(95vh-80px)] sm:max-h-[calc(95vh-100px)] overflow-y-auto pb-6">
                 <div class="grid grid-cols-2 gap-1 sm:gap-2">
