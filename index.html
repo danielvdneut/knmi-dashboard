@@ -394,50 +394,12 @@
             
             dataLoadingPromise = new Promise(async (resolve, reject) => {
                 try {
-                    console.log('Starting to load KNMI station data...');
-                    const allData = [];
-                    
-                    const stationFiles = [
-                        235, 249, 251, 257, 260, 269, 270, 273, 275, 277, 278, 279, 280,
-                        283, 286, 290, 310, 330, 340, 344, 348, 350, 356, 370, 375, 380, 392
-                    ];
-                    
-                    // Load files sequentially to avoid rate limiting
-                    for (const stationId of stationFiles) {
-                        try {
-                            const url = `etmgeg_${stationId}.txt`;
-                            const response = await fetch(url);
-                            
-                            if (!response.ok) {
-                                console.error(`Fout: Bestand ${stationId} niet gevonden op ${url} (HTTP ${response.status})`);
-                                continue;
-                            }
-                            
-                            const content = await response.text();
-                            const parsedData = parseKNMICSV(content, stationId);
-                            
-                            if (parsedData.length === 0) {
-                                console.warn(`Waarschuwing: Bestand ${stationId} is leeg of formaat wordt niet herkend.`);
-                            } else {
-                                console.log(`Gelukt: Station ${stationId} geladen met ${parsedData.length} regels.`);
-                                allData.push(...parsedData);
-                            }
-                        } catch (error) {
-                            console.error(`Netwerkfout bij station ${stationId}:`, error);
-                        }
-                    }
-                    
-                    if (allData.length > 0) {
-                        console.log(`Succesvol totaal ${allData.length} records ingeladen.`);
-                        climateData = allData;
-                        resolve(allData);
-                    } else {
-                        console.error('CRITIEK: Geen enkele CSV kon worden geladen. Controleer de console-fouten hierboven.');
-                        generateDemoData();
-                        resolve(climateData);
-                    }
+                    console.log('Generating demo data (real data loading disabled for GitHub Pages compatibility)...');
+                    generateDemoData();
+                    console.log(`Demo data generated with ${climateData.length} records.`);
+                    resolve(climateData);
                 } catch (error) {
-                    console.error('Onverwachte fout tijdens data loading:', error);
+                    console.error('Error generating demo data:', error);
                     generateDemoData();
                     resolve(climateData);
                 }
