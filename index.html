@@ -402,15 +402,15 @@
                         283, 286, 290, 310, 330, 340, 344, 348, 350, 356, 370, 375, 380, 392
                     ];
                     
-                    const loadPromises = stationFiles.map(async (stationId) => {
+                    // Load files sequentially to avoid rate limiting
+                    for (const stationId of stationFiles) {
                         try {
-                            // De '?t=' toevoeging dwingt de browser om de nieuwste versie te pakken
                             const url = `etmgeg_${stationId}.txt`;
                             const response = await fetch(url);
                             
                             if (!response.ok) {
                                 console.error(`Fout: Bestand ${stationId} niet gevonden op ${url} (HTTP ${response.status})`);
-                                return [];
+                                continue;
                             }
                             
                             const content = await response.text();
@@ -420,18 +420,11 @@
                                 console.warn(`Waarschuwing: Bestand ${stationId} is leeg of formaat wordt niet herkend.`);
                             } else {
                                 console.log(`Gelukt: Station ${stationId} geladen met ${parsedData.length} regels.`);
+                                allData.push(...parsedData);
                             }
-                            return parsedData;
                         } catch (error) {
                             console.error(`Netwerkfout bij station ${stationId}:`, error);
-                            return [];
                         }
-                    });
-                    
-                    const results = await Promise.all(loadPromises);
-                    
-                    for (const stationData of results) {
-                        allData.push(...stationData);
                     }
                     
                     if (allData.length > 0) {
