@@ -24,7 +24,17 @@
         #map { width: 100%; height: 100%; border-radius: 1rem; z-index: 10; }
     </style>
 </head>
+
 <body class="min-h-screen text-slate-800 font-sans antialiased p-4 md:p-6">
+    <div id="demo-data-banner" class="hidden bg-amber-100 border border-amber-200 text-amber-800 px-4 py-2 rounded-lg text-xs font-bold text-center mb-4">
+        ⚠️ DEMO DATA MODUS ⚠️ - Echte KNMI data kon niet geladen worden. Gebruikt demo data voor visualisatie.
+    </div>
+    <div id="demo-data-banner" class="hidden bg-amber-100 border border-amber-200 text-amber-800 px-4 py-2 rounded-lg text-xs font-bold text-center mb-4">
+        26a0Fe0f DEMO DATA MODUS 26a0Fe0f - Echte KNMI data kon niet geladen worden. Gebruikt demo data voor visualisatie.
+    </div>
+    <div id="demo-data-banner" class="hidden bg-amber-100 border border-amber-200 text-amber-800 px-4 py-2 rounded-lg text-xs font-bold text-center mb-4">
+         DEMO DATA MODUS  - Echte KNMI data kon niet geladen worden. Gebruikt demo data voor visualisatie.
+    </div>
     <div class="max-w-7xl mx-auto space-y-6">
         <header class="flex flex-col md:flex-row justify-between items-center bg-white/95 backdrop-blur border border-slate-200 p-6 rounded-3xl shadow-xl gap-4">
             <div>
@@ -175,6 +185,7 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <script>
         // ==================== CONFIGURATION ====================
+        let isUsingDemoData = false;
         const backgroundRules = [
             { startWeek: 48, endWeek: 7, label: 'Winter', color: 'from-blue-600 to-indigo-800', unsp: 'https://images.unsplash.com/photo-1418985991508-e47386d96a71?auto=format&fit=crop&w=1920&q=80' },
             { startWeek: 8, endWeek: 21, label: 'Lente', color: 'from-emerald-500 to-green-700', unsp: 'https://images.unsplash.com/photo-1462275646964-a0e3386b89fa?auto=format&fit=crop&w=1920&q=80' },
@@ -368,6 +379,8 @@
         }
 
         function generateDemoData() {
+            isUsingDemoData = true;
+            document.getElementById('demo-data-banner').classList.remove('hidden');
             const data = [];
             for (let year = 1996; year <= 2026; year++) {
                 const warming = (year - 1996) * 0.04;
