@@ -426,7 +426,7 @@
                         try {
                             // De '?t=' toevoeging dwingt de browser om de nieuwste versie te pakken
                             const url = `https://raw.githubusercontent.com/danielvdneut/knmi-dashboard/main/etmgeg_${stationId}.txt`;
-                            const response = await fetch(url);
+                            const response = await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`);
                             
                             if (!response.ok) {
                                 console.error(`Fout: Bestand ${stationId} niet gevonden op ${url} (HTTP ${response.status})`);
@@ -972,11 +972,21 @@
                 stationSub.innerHTML = `🌍 <span>30-jarig IDW-gemiddelde van gekozen locatie</span>`;
             }
 
+            // Update Temperaturen section
             document.getElementById('modal-tx').textContent = `${stats.TX} °C`;
             document.getElementById('modal-tn').textContent = `${stats.TN} °C`;
+            document.getElementById('modal-tg').textContent = `${stats.TG || ((stats.TX + stats.TN) / 2).toFixed(1)} °C`;
+            
+            // Update Zon & Neerslag section
             document.getElementById('modal-sq').textContent = `${stats.SQ} uur`;
+            document.getElementById('modal-rh').textContent = `${stats.RH} mm`;
+            
+            // Update Wind section
+            document.getElementById('modal-fhx').textContent = `${stats.FHX || 'N/A'} m/s`;
+            document.getElementById('modal-ddvec').textContent = getWindDirectionName(stats.DDVEC || 0);
+            
+            // Update Neerslagvoorspelling section
             const dryProb = Math.round(stats.dryDayProbability);
-            document.getElementById('modal-dry-prob').textContent = `${dryProb}%`;
             document.getElementById('modal-rain-prob').textContent = `${100 - dryProb}%`;
             document.getElementById('modal-dr').textContent = `${stats.rainDuration.toFixed(1)} uur`;
             document.getElementById('rain-amount').textContent = `${stats.rainAmountIfWet.toFixed(1)} mm`;
