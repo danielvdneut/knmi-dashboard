@@ -585,6 +585,11 @@
         }
 
         function initLeafletMap() {
+            // Zorg dat de kaart container zichtbaar is
+            const mapContainer = document.getElementById('map');
+            if (mapContainer) {
+                mapContainer.style.visibility = 'visible';
+            }
             map = L.map('map', { center: [52.2, 5.5], zoom: 7, minZoom: 6, maxZoom: 11, zoomControl: false });
             L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
                 attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
