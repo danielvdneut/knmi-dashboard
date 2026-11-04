@@ -986,6 +986,7 @@
             currentChartMetric = currentMetric;
             updateTabHighlight();
             buildHistoricalChart();
+            resetAllAccordions();
             document.getElementById('day-detail-modal').classList.remove('hidden');
         }
 
@@ -996,11 +997,13 @@
         }
 
         function updateTabHighlight() {
-            ['TX', 'TN', 'SQ', 'RH'].forEach(m => {
+            ['TG', 'TX', 'TN', 'SQ', 'RH', 'EV24', 'FHX'].forEach(m => {
                 const tab = document.getElementById(`tab-${m}`);
-                tab.className = (m === currentChartMetric)
-                    ? "px-2 py-1 rounded-lg transition-colors bg-white text-slate-800 shadow-sm"
-                    : "px-2 py-1 rounded-lg transition-colors text-slate-600 hover:text-slate-900";
+                if (tab) {
+                    tab.className = (m === currentChartMetric)
+                        ? "px-2 py-1 rounded-lg transition-colors bg-white text-slate-800 shadow-sm border border-blue-300"
+                        : "px-2 py-1 rounded-lg transition-colors text-slate-600 hover:text-slate-900";
+                }
             });
         }
 
