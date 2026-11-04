@@ -22,7 +22,31 @@
             transition: background-image 1s ease-in-out;
         }
         #map { width: 100%; height: 100%; border-radius: 1rem; z-index: 10; }
-    </style>
+    
+        /* Accordion styles */
+        .accordion-icon-rotate {
+            transform: rotate(180deg);
+        }
+        #accordion-content-temperatures.active,
+        #accordion-content-sun-rain.active,
+        #accordion-content-wind.active,
+        #accordion-content-rain-forecast.active {
+            display: block !important;
+        }
+        #accordion-content-temperatures,
+        #accordion-content-sun-rain,
+        #accordion-content-wind,
+        #accordion-content-rain-forecast {
+            max-height: 500px;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+        #accordion-content-sun-rain,
+        #accordion-content-wind,
+        #accordion-content-rain-forecast {
+            max-height: 0;
+        }
+</style>
 </head>
 
 <body class="min-h-screen text-slate-800 font-sans antialiased p-4 md:p-6">
@@ -113,65 +137,128 @@
         </footer>
     </div>
 
-    <div id="day-detail-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div id="day-detail-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
         <div class="bg-white rounded-3xl shadow-2xl max-w-2xl w-full border border-slate-200 overflow-hidden">
             <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
-                <div>
+                <div class="text-center flex-1">
                     <h4 id="modal-date-title" class="text-lg font-black text-slate-900">Dag Details</h4>
                     <p id="modal-station-count" class="text-xs text-slate-500 font-semibold mt-0.5">Rumpt & Omgeving</p>
                 </div>
                 <button onclick="closeDayDetail()" class="text-slate-400 hover:text-slate-600 text-xl font-bold bg-white w-8 h-8 rounded-full border shadow-sm flex items-center justify-center">&times;</button>
             </div>
-            <div class="p-6 space-y-4 max-h-[85vh] overflow-y-auto pb-8">
-                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                    <div class="bg-amber-50/60 border border-amber-100 p-3 rounded-2xl">
-                        <span class="text-[10px] uppercase font-bold text-amber-600 block">Max Temp</span>
-                        <span id="modal-tx" class="text-base font-black text-amber-900">--</span>
-                    </div>
-                    <div class="bg-blue-50/60 border border-blue-100 p-3 rounded-2xl">
-                        <span class="text-[10px] uppercase font-bold text-blue-600 block">Min Temp</span>
-                        <span id="modal-tn" class="text-base font-black text-blue-900">--</span>
-                    </div>
-                    <div class="bg-yellow-50/60 border border-yellow-100 p-3 rounded-2xl">
-                        <span class="text-[10px] uppercase font-bold text-yellow-600 block">Zonneschijn</span>
-                        <span id="modal-sq" class="text-base font-black text-yellow-900">--</span>
-                    </div>
-                    <div class="bg-emerald-50/60 border border-emerald-100 p-3 rounded-2xl">
-                        <span class="text-[10px] uppercase font-bold text-emerald-600 block">Kans op Droog</span>
-                        <span id="modal-dry-prob" class="text-base font-black text-emerald-900">--</span>
-                    </div>
-                </div>
-
-                <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4">
-                    <span class="text-[10px] uppercase font-bold text-slate-400 block mb-2">🔮 Aanvullende Neerslag Analyse (Prognose)</span>
-                    <div class="space-y-2 text-xs">
-                        <div class="flex justify-between border-b pb-1">
-                            <span class="text-slate-500">Kans op neerslag:</span>
-                            <span id="modal-rain-prob" class="font-bold text-indigo-600">--</span>
-                        </div>
-                        <div class="flex justify-between border-b pb-1">
-                            <span class="text-slate-500">Verwachte regenduur:</span>
-                            <span id="modal-dr" class="font-bold text-slate-800">--</span>
-                        </div>
-                        <div class="flex justify-between border-b pb-1">
-                            <span class="text-slate-500">Verwachte etmaalsom:</span>
-                            <span id="rain-amount" class="font-bold text-slate-800">--</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="text-slate-500">Kans op zware bui (>5mm/u):</span>
-                            <span id="modal-heavy-prob" class="font-bold text-red-600">--</span>
+            <div class="p-6 space-y-2 max-h-[85vh] overflow-y-auto pb-8">
+                <!-- Accordion: Temperaturen -->
+                <div class="border border-slate-200 rounded-xl overflow-hidden">
+                    <button onclick="toggleAccordion('temperatures')" class="w-full p-3 bg-slate-50 hover:bg-slate-100 text-left flex justify-between items-center transition-colors" aria-expanded="true" aria-controls="accordion-content-temperatures">
+                        <span class="font-bold text-slate-800 text-sm">Temperaturen</span>
+                        <svg id="accordion-icon-temperatures" class="w-4 h-4 text-slate-500 transition-transform accordion-icon-rotate" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                        </svg>
+                    </button>
+                    <div id="accordion-content-temperatures" class="active p-4 bg-white" role="region" aria-labelledby="accordion-header-temperatures">
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                            <div class="bg-amber-50/60 border border-amber-100 p-3 rounded-2xl">
+                                <span class="text-[10px] uppercase font-bold text-amber-600 block">MaxT</span>
+                                <span id="modal-tx" class="text-base font-black text-amber-900">--</span>
+                            </div>
+                            <div class="bg-blue-50/60 border border-blue-100 p-3 rounded-2xl">
+                                <span class="text-[10px] uppercase font-bold text-blue-600 block">MinT</span>
+                                <span id="modal-tn" class="text-base font-black text-blue-900">--</span>
+                            </div>
+                            <div class="bg-cyan-50/60 border border-cyan-100 p-3 rounded-2xl">
+                                <span class="text-[10px] uppercase font-bold text-cyan-600 block">GemT</span>
+                                <span id="modal-tg" class="text-base font-black text-cyan-900">--</span>
+                            </div>
                         </div>
                     </div>
                 </div>
 
+                <!-- Accordion: Zon & Neerslag -->
+                <div class="border border-slate-200 rounded-xl overflow-hidden">
+                    <button onclick="toggleAccordion('sun-rain')" class="w-full p-3 bg-slate-50 hover:bg-slate-100 text-left flex justify-between items-center transition-colors" aria-expanded="false" aria-controls="accordion-content-sun-rain">
+                        <span class="font-bold text-slate-800 text-sm">Zon & Neerslag</span>
+                        <svg id="accordion-icon-sun-rain" class="w-4 h-4 text-slate-500 transition-transform" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                        </svg>
+                    </button>
+                    <div id="accordion-content-sun-rain" class="p-4 bg-white hidden" role="region" aria-labelledby="accordion-header-sun-rain">
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="bg-yellow-50/60 border border-yellow-100 p-3 rounded-2xl">
+                                <span class="text-[10px] uppercase font-bold text-yellow-600 block">Zonuren</span>
+                                <span id="modal-sq" class="text-base font-black text-yellow-900">--</span>
+                            </div>
+                            <div class="bg-emerald-50/60 border border-emerald-100 p-3 rounded-2xl">
+                                <span class="text-[10px] uppercase font-bold text-emerald-600 block">Neerslag</span>
+                                <span id="modal-rh" class="text-base font-black text-emerald-900">--</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Accordion: Wind -->
+                <div class="border border-slate-200 rounded-xl overflow-hidden">
+                    <button onclick="toggleAccordion('wind')" class="w-full p-3 bg-slate-50 hover:bg-slate-100 text-left flex justify-between items-center transition-colors" aria-expanded="false" aria-controls="accordion-content-wind">
+                        <span class="font-bold text-slate-800 text-sm">Wind</span>
+                        <svg id="accordion-icon-wind" class="w-4 h-4 text-slate-500 transition-transform" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                        </svg>
+                    </button>
+                    <div id="accordion-content-wind" class="p-4 bg-white hidden" role="region" aria-labelledby="accordion-header-wind">
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="bg-purple-50/60 border border-purple-100 p-3 rounded-2xl">
+                                <span class="text-[10px] uppercase font-bold text-purple-600 block">Max Wind</span>
+                                <span id="modal-fhx" class="text-base font-black text-purple-900">--</span>
+                            </div>
+                            <div class="bg-indigo-50/60 border border-indigo-100 p-3 rounded-2xl">
+                                <span class="text-[10px] uppercase font-bold text-indigo-600 block">Windrichting</span>
+                                <span id="modal-ddvec" class="text-base font-black text-indigo-900">--</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Accordion: Neerslagvoorspelling -->
+                <div class="border border-slate-200 rounded-xl overflow-hidden">
+                    <button onclick="toggleAccordion('rain-forecast')" class="w-full p-3 bg-slate-50 hover:bg-slate-100 text-left flex justify-between items-center transition-colors" aria-expanded="false" aria-controls="accordion-content-rain-forecast">
+                        <span class="font-bold text-slate-800 text-sm">Neerslagvoorspelling</span>
+                        <svg id="accordion-icon-rain-forecast" class="w-4 h-4 text-slate-500 transition-transform" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                        </svg>
+                    </button>
+                    <div id="accordion-content-rain-forecast" class="p-4 bg-white hidden" role="region" aria-labelledby="accordion-header-rain-forecast">
+                        <div class="space-y-2 text-xs">
+                            <div class="flex justify-between border-b pb-1">
+                                <span class="text-slate-500">Kans op neerslag:</span>
+                                <span id="modal-rain-prob" class="font-bold text-indigo-600">--</span>
+                            </div>
+                            <div class="flex justify-between border-b pb-1">
+                                <span class="text-slate-500">Verwachte regenduur:</span>
+                                <span id="modal-dr" class="font-bold text-slate-800">--</span>
+                            </div>
+                            <div class="flex justify-between border-b pb-1">
+                                <span class="text-slate-500">Verwachte etmaalsom:</span>
+                                <span id="rain-amount" class="font-bold text-slate-800">--</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-500">Kans op zware bui (>5mm/u):</span>
+                                <span id="modal-heavy-prob" class="font-bold text-red-600">--</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Grafiek sectie -->
                 <div class="bg-white border border-slate-200 rounded-2xl p-4">
                     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-3 pb-2 border-b">
-                        <span class="text-[10px] uppercase font-bold text-slate-400 block">📈 Historische tijdreeks op deze dag (1996 - 2026)</span>
+                        <span class="text-[10px] uppercase font-bold text-slate-400 block">📊 Historische tijdreeks (1996 - 2026)</span>
                         <div id="chart-tabs" class="flex gap-1 bg-slate-100 p-1 rounded-xl text-[10px] font-bold w-full sm:w-auto justify-between">
-                            <button onclick="switchChartMetric('TX')" id="tab-TX" class="px-2 py-1 rounded-lg transition-colors bg-white text-slate-800 shadow-sm">Max Temp</button>
-                            <button onclick="switchChartMetric('TN')" id="tab-TN" class="px-2 py-1 rounded-lg transition-colors text-slate-600 hover:text-slate-900">Min Temp</button>
-                            <button onclick="switchChartMetric('SQ')" id="tab-SQ" class="px-2 py-1 rounded-lg transition-colors text-slate-600 hover:text-slate-900">Zonuren</button>
-                            <button onclick="switchChartMetric('RH')" id="tab-RH" class="px-2 py-1 rounded-lg transition-colors text-slate-600 hover:text-slate-900">Neerslagsom</button>
+                            <button onclick="switchChartMetric('TG')" id="tab-TG" class="px-2 py-1 rounded-lg transition-colors bg-white text-slate-800 shadow-sm border border-blue-300">GT</button>
+                            <button onclick="switchChartMetric('TX')" id="tab-TX" class="px-2 py-1 rounded-lg transition-colors text-slate-600 hover:text-slate-900">MXT</button>
+                            <button onclick="switchChartMetric('TN')" id="tab-TN" class="px-2 py-1 rounded-lg transition-colors text-slate-600 hover:text-slate-900">MNT</button>
+                            <button onclick="switchChartMetric('SQ')" id="tab-SQ" class="px-2 py-1 rounded-lg transition-colors text-slate-600 hover:text-slate-900">ZN</button>
+                            <button onclick="switchChartMetric('RH')" id="tab-RH" class="px-2 py-1 rounded-lg transition-colors text-slate-600 hover:text-slate-900">NR</button>
+                            <button onclick="switchChartMetric('EV24')" id="tab-EV24" class="px-2 py-1 rounded-lg transition-colors text-slate-600 hover:text-slate-900">VD</button>
+                            <button onclick="switchChartMetric('FHX')" id="tab-FHX" class="px-2 py-1 rounded-lg transition-colors text-slate-600 hover:text-slate-900">WN</button>
                         </div>
                     </div>
                     <div class="w-full h-48 relative">
@@ -180,12 +267,20 @@
                 </div>
             </div>
         </div>
-    </div>
+    </div></div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <script>
         // ==================== CONFIGURATION ====================
         let isUsingDemoData = false;
+                // Accordion states
+        const accordionStates = {
+            temperatures: true,
+            'sun-rain': false,
+            wind: false,
+            'rain-forecast': false
+        };
+
         const backgroundRules = [
             { startWeek: 48, endWeek: 7, label: 'Winter', color: 'from-blue-600 to-indigo-800', unsp: 'https://images.unsplash.com/photo-1418985991508-e47386d96a71?auto=format&fit=crop&w=1920&q=80' },
             { startWeek: 8, endWeek: 21, label: 'Lente', color: 'from-emerald-500 to-green-700', unsp: 'https://images.unsplash.com/photo-1462275646964-a0e3386b89fa?auto=format&fit=crop&w=1920&q=80' },
@@ -582,6 +677,40 @@
             const badge = document.getElementById('season-tag');
             badge.textContent = activeRule.label;
             badge.className = `px-3 py-1 rounded-full text-xs font-bold shadow-sm border text-white bg-gradient-to-r ${activeRule.color}`;
+        }
+
+                function toggleAccordion(section) {
+            accordionStates[section] = !accordionStates[section];
+            const content = document.getElementById(`accordion-content-${section}`);
+            const icon = document.getElementById(`accordion-icon-${section}`);
+            
+            if (accordionStates[section]) {
+                content.classList.add('active');
+                content.style.maxHeight = content.scrollHeight + 'px';
+                icon.classList.add('accordion-icon-rotate');
+            } else {
+                content.classList.remove('active');
+                content.style.maxHeight = '0';
+                icon.classList.remove('accordion-icon-rotate');
+            }
+        }
+
+                function resetAllAccordions() {
+            Object.keys(accordionStates).forEach(section => {
+                const content = document.getElementById(`accordion-content-${section}`);
+                const icon = document.getElementById(`accordion-icon-${section}`);
+                const shouldBeOpen = accordionStates[section];
+                
+                if (shouldBeOpen) {
+                    content.classList.add('active');
+                    content.style.maxHeight = content.scrollHeight + 'px';
+                    icon.classList.add('accordion-icon-rotate');
+                } else {
+                    content.classList.remove('active');
+                    content.style.maxHeight = '0';
+                    icon.classList.remove('accordion-icon-rotate');
+                }
+            });
         }
 
         function initLeafletMap() {
