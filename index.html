@@ -22,43 +22,9 @@
             transition: background-image 1s ease-in-out;
         }
         #map { width: 100%; height: 100%; border-radius: 1rem; z-index: 10; }
-    
-        /* Accordion styles */
-        .accordion-icon-rotate {
-            transform: rotate(180deg);
-        }
-        #accordion-content-temperatures.active,
-        #accordion-content-sun-rain.active,
-        #accordion-content-wind.active,
-        #accordion-content-rain-forecast.active {
-            display: block !important;
-        }
-        #accordion-content-temperatures,
-        #accordion-content-sun-rain,
-        #accordion-content-wind,
-        #accordion-content-rain-forecast {
-            max-height: 500px;
-            overflow: hidden;
-            transition: max-height 0.3s ease-out;
-        }
-        #accordion-content-sun-rain,
-        #accordion-content-wind,
-        #accordion-content-rain-forecast {
-            max-height: 0;
-        }
-</style>
+    </style>
 </head>
-
 <body class="min-h-screen text-slate-800 font-sans antialiased p-4 md:p-6">
-    <div id="demo-data-banner" class="hidden bg-amber-100 border border-amber-200 text-amber-800 px-4 py-2 rounded-lg text-xs font-bold text-center mb-4">
-        ⚠️ DEMO DATA MODUS ⚠️ - Echte KNMI data kon niet geladen worden. Gebruikt demo data voor visualisatie.
-    </div>
-    <div id="demo-data-banner" class="hidden bg-amber-100 border border-amber-200 text-amber-800 px-4 py-2 rounded-lg text-xs font-bold text-center mb-4">
-        26a0Fe0f DEMO DATA MODUS 26a0Fe0f - Echte KNMI data kon niet geladen worden. Gebruikt demo data voor visualisatie.
-    </div>
-    <div id="demo-data-banner" class="hidden bg-amber-100 border border-amber-200 text-amber-800 px-4 py-2 rounded-lg text-xs font-bold text-center mb-4">
-         DEMO DATA MODUS  - Echte KNMI data kon niet geladen worden. Gebruikt demo data voor visualisatie.
-    </div>
     <div class="max-w-7xl mx-auto space-y-6">
         <header class="flex flex-col md:flex-row justify-between items-center bg-white/95 backdrop-blur border border-slate-200 p-6 rounded-3xl shadow-xl gap-4">
             <div>
@@ -127,7 +93,7 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs leading-relaxed text-slate-600">
                 <div class="bg-slate-50 p-4 rounded-2xl border">
                     <h5 class="font-bold text-slate-800 mb-1">📊 Data & Methodes</h5>
-                    <p>Gebruikt historische KNMI-data (1996-2026) met twee rekenmethodes: <strong>ARIMA(1,0,0)</strong> voor Rumpt (statistische voorspelling) en <strong>IDW 30-jarig Gemiddelde</strong> voor willekeurige locaties (ruimtelijke interpolatie).</p>
+                    <p>Gebruikt historische KNMI-data (1996-2026) met twee rekenmethodes: <strong>ARIMA(1,0,0)</strong> voor Rumpt (statistische voorspelling) en <strong>IDW 30-jarig Gemiddelde</strong> voor willekeurige locaties (ruimtelijke interpolatie). Het 31e jaar toont de voorspelling.</p>
                 </div>
                 <div class="bg-slate-50 p-4 rounded-2xl border">
                     <h5 class="font-bold text-slate-800 mb-1">🗺️ Locatie & Kaart</h5>
@@ -137,128 +103,65 @@
         </footer>
     </div>
 
-        <div id="day-detail-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+    <div id="day-detail-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
         <div class="bg-white rounded-3xl shadow-2xl max-w-2xl w-full border border-slate-200 overflow-hidden">
             <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
-                <div class="text-center flex-1">
+                <div>
                     <h4 id="modal-date-title" class="text-lg font-black text-slate-900">Dag Details</h4>
-                    <p id="modal-station-count" class="text-xs text-slate-500 font-semibold mt-0.5">Rumpt & Omgeving</p>
+                    <p id="modal-station-count" class="text-xs text-slate-400 font-medium mt-0.5">Rumpt & Omgeving</p>
                 </div>
                 <button onclick="closeDayDetail()" class="text-slate-400 hover:text-slate-600 text-xl font-bold bg-white w-8 h-8 rounded-full border shadow-sm flex items-center justify-center">&times;</button>
             </div>
-            <div class="p-6 space-y-2 max-h-[85vh] overflow-y-auto pb-8">
-                <!-- Accordion: Temperaturen -->
-                <div class="border border-slate-200 rounded-xl overflow-hidden">
-                    <button onclick="toggleAccordion('temperatures')" class="w-full p-3 bg-slate-50 hover:bg-slate-100 text-left flex justify-between items-center transition-colors" aria-expanded="true" aria-controls="accordion-content-temperatures">
-                        <span class="font-bold text-slate-800 text-sm">Temperaturen</span>
-                        <svg id="accordion-icon-temperatures" class="w-4 h-4 text-slate-500 transition-transform accordion-icon-rotate" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
-                        </svg>
-                    </button>
-                    <div id="accordion-content-temperatures" class="active p-4 bg-white" role="region" aria-labelledby="accordion-header-temperatures">
-                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                            <div class="bg-amber-50/60 border border-amber-100 p-3 rounded-2xl">
-                                <span class="text-[10px] uppercase font-bold text-amber-600 block">MaxT</span>
-                                <span id="modal-tx" class="text-base font-black text-amber-900">--</span>
-                            </div>
-                            <div class="bg-blue-50/60 border border-blue-100 p-3 rounded-2xl">
-                                <span class="text-[10px] uppercase font-bold text-blue-600 block">MinT</span>
-                                <span id="modal-tn" class="text-base font-black text-blue-900">--</span>
-                            </div>
-                            <div class="bg-cyan-50/60 border border-cyan-100 p-3 rounded-2xl">
-                                <span class="text-[10px] uppercase font-bold text-cyan-600 block">GemT</span>
-                                <span id="modal-tg" class="text-base font-black text-cyan-900">--</span>
-                            </div>
+            <div class="p-6 space-y-4 max-h-[85vh] overflow-y-auto pb-8">
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    <div class="bg-amber-50/60 border border-amber-100 p-3 rounded-2xl">
+                        <span class="text-[10px] uppercase font-bold text-amber-600 block">Max Temp</span>
+                        <span id="modal-tx" class="text-base font-black text-amber-900">--</span>
+                    </div>
+                    <div class="bg-blue-50/60 border border-blue-100 p-3 rounded-2xl">
+                        <span class="text-[10px] uppercase font-bold text-blue-600 block">Min Temp</span>
+                        <span id="modal-tn" class="text-base font-black text-blue-900">--</span>
+                    </div>
+                    <div class="bg-yellow-50/60 border border-yellow-100 p-3 rounded-2xl">
+                        <span class="text-[10px] uppercase font-bold text-yellow-600 block">Zonneschijn</span>
+                        <span id="modal-sq" class="text-base font-black text-yellow-900">--</span>
+                    </div>
+                    <div class="bg-emerald-50/60 border border-emerald-100 p-3 rounded-2xl">
+                        <span class="text-[10px] uppercase font-bold text-emerald-600 block">Kans op Droog</span>
+                        <span id="modal-dry-prob" class="text-base font-black text-emerald-900">--</span>
+                    </div>
+                </div>
+
+                <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4">
+                    <span class="text-[10px] uppercase font-bold text-slate-400 block mb-2">🔮 Aanvullende Neerslag Analyse (Prognose)</span>
+                    <div class="space-y-2 text-xs">
+                        <div class="flex justify-between border-b pb-1">
+                            <span class="text-slate-500">Kans op neerslag:</span>
+                            <span id="modal-rain-prob" class="font-bold text-indigo-600">--</span>
+                        </div>
+                        <div class="flex justify-between border-b pb-1">
+                            <span class="text-slate-500">Verwachte regenduur:</span>
+                            <span id="modal-dr" class="font-bold text-slate-800">--</span>
+                        </div>
+                        <div class="flex justify-between border-b pb-1">
+                            <span class="text-slate-500">Verwachte etmaalsom:</span>
+                            <span id="rain-amount" class="font-bold text-slate-800">--</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-slate-500">Kans op zware bui (>5mm/u):</span>
+                            <span id="modal-heavy-prob" class="font-bold text-red-600">--</span>
                         </div>
                     </div>
                 </div>
 
-                <!-- Accordion: Zon & Neerslag -->
-                <div class="border border-slate-200 rounded-xl overflow-hidden">
-                    <button onclick="toggleAccordion('sun-rain')" class="w-full p-3 bg-slate-50 hover:bg-slate-100 text-left flex justify-between items-center transition-colors" aria-expanded="false" aria-controls="accordion-content-sun-rain">
-                        <span class="font-bold text-slate-800 text-sm">Zon & Neerslag</span>
-                        <svg id="accordion-icon-sun-rain" class="w-4 h-4 text-slate-500 transition-transform" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
-                        </svg>
-                    </button>
-                    <div id="accordion-content-sun-rain" class="p-4 bg-white hidden" role="region" aria-labelledby="accordion-header-sun-rain">
-                        <div class="grid grid-cols-2 gap-3">
-                            <div class="bg-yellow-50/60 border border-yellow-100 p-3 rounded-2xl">
-                                <span class="text-[10px] uppercase font-bold text-yellow-600 block">Zonuren</span>
-                                <span id="modal-sq" class="text-base font-black text-yellow-900">--</span>
-                            </div>
-                            <div class="bg-emerald-50/60 border border-emerald-100 p-3 rounded-2xl">
-                                <span class="text-[10px] uppercase font-bold text-emerald-600 block">Neerslag</span>
-                                <span id="modal-rh" class="text-base font-black text-emerald-900">--</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Accordion: Wind -->
-                <div class="border border-slate-200 rounded-xl overflow-hidden">
-                    <button onclick="toggleAccordion('wind')" class="w-full p-3 bg-slate-50 hover:bg-slate-100 text-left flex justify-between items-center transition-colors" aria-expanded="false" aria-controls="accordion-content-wind">
-                        <span class="font-bold text-slate-800 text-sm">Wind</span>
-                        <svg id="accordion-icon-wind" class="w-4 h-4 text-slate-500 transition-transform" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
-                        </svg>
-                    </button>
-                    <div id="accordion-content-wind" class="p-4 bg-white hidden" role="region" aria-labelledby="accordion-header-wind">
-                        <div class="grid grid-cols-2 gap-3">
-                            <div class="bg-purple-50/60 border border-purple-100 p-3 rounded-2xl">
-                                <span class="text-[10px] uppercase font-bold text-purple-600 block">Max Wind</span>
-                                <span id="modal-fhx" class="text-base font-black text-purple-900">--</span>
-                            </div>
-                            <div class="bg-indigo-50/60 border border-indigo-100 p-3 rounded-2xl">
-                                <span class="text-[10px] uppercase font-bold text-indigo-600 block">Windrichting</span>
-                                <span id="modal-ddvec" class="text-base font-black text-indigo-900">--</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Accordion: Neerslagvoorspelling -->
-                <div class="border border-slate-200 rounded-xl overflow-hidden">
-                    <button onclick="toggleAccordion('rain-forecast')" class="w-full p-3 bg-slate-50 hover:bg-slate-100 text-left flex justify-between items-center transition-colors" aria-expanded="false" aria-controls="accordion-content-rain-forecast">
-                        <span class="font-bold text-slate-800 text-sm">Neerslagvoorspelling</span>
-                        <svg id="accordion-icon-rain-forecast" class="w-4 h-4 text-slate-500 transition-transform" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
-                        </svg>
-                    </button>
-                    <div id="accordion-content-rain-forecast" class="p-4 bg-white hidden" role="region" aria-labelledby="accordion-header-rain-forecast">
-                        <div class="space-y-2 text-xs">
-                            <div class="flex justify-between border-b pb-1">
-                                <span class="text-slate-500">Kans op neerslag:</span>
-                                <span id="modal-rain-prob" class="font-bold text-indigo-600">--</span>
-                            </div>
-                            <div class="flex justify-between border-b pb-1">
-                                <span class="text-slate-500">Verwachte regenduur:</span>
-                                <span id="modal-dr" class="font-bold text-slate-800">--</span>
-                            </div>
-                            <div class="flex justify-between border-b pb-1">
-                                <span class="text-slate-500">Verwachte etmaalsom:</span>
-                                <span id="rain-amount" class="font-bold text-slate-800">--</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="text-slate-500">Kans op zware bui (>5mm/u):</span>
-                                <span id="modal-heavy-prob" class="font-bold text-red-600">--</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Grafiek sectie -->
                 <div class="bg-white border border-slate-200 rounded-2xl p-4">
                     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-3 pb-2 border-b">
-                        <span class="text-[10px] uppercase font-bold text-slate-400 block">📊 Historische tijdreeks (1996 - 2026)</span>
+                        <span class="text-[10px] uppercase font-bold text-slate-400 block">📈 Historische tijdreeks op deze dag (1996 - 2026)</span>
                         <div id="chart-tabs" class="flex gap-1 bg-slate-100 p-1 rounded-xl text-[10px] font-bold w-full sm:w-auto justify-between">
-                            <button onclick="switchChartMetric('TG')" id="tab-TG" class="px-2 py-1 rounded-lg transition-colors bg-white text-slate-800 shadow-sm border border-blue-300">GT</button>
-                            <button onclick="switchChartMetric('TX')" id="tab-TX" class="px-2 py-1 rounded-lg transition-colors text-slate-600 hover:text-slate-900">MXT</button>
-                            <button onclick="switchChartMetric('TN')" id="tab-TN" class="px-2 py-1 rounded-lg transition-colors text-slate-600 hover:text-slate-900">MNT</button>
-                            <button onclick="switchChartMetric('SQ')" id="tab-SQ" class="px-2 py-1 rounded-lg transition-colors text-slate-600 hover:text-slate-900">ZN</button>
-                            <button onclick="switchChartMetric('RH')" id="tab-RH" class="px-2 py-1 rounded-lg transition-colors text-slate-600 hover:text-slate-900">NR</button>
-                            <button onclick="switchChartMetric('EV24')" id="tab-EV24" class="px-2 py-1 rounded-lg transition-colors text-slate-600 hover:text-slate-900">VD</button>
-                            <button onclick="switchChartMetric('FHX')" id="tab-FHX" class="px-2 py-1 rounded-lg transition-colors text-slate-600 hover:text-slate-900">WN</button>
+                            <button onclick="switchChartMetric('TX')" id="tab-TX" class="px-2 py-1 rounded-lg transition-colors bg-white text-slate-800 shadow-sm">Max Temp</button>
+                            <button onclick="switchChartMetric('TN')" id="tab-TN" class="px-2 py-1 rounded-lg transition-colors text-slate-600 hover:text-slate-900">Min Temp</button>
+                            <button onclick="switchChartMetric('SQ')" id="tab-SQ" class="px-2 py-1 rounded-lg transition-colors text-slate-600 hover:text-slate-900">Zonuren</button>
+                            <button onclick="switchChartMetric('RH')" id="tab-RH" class="px-2 py-1 rounded-lg transition-colors text-slate-600 hover:text-slate-900">Neerslagsom</button>
                         </div>
                     </div>
                     <div class="w-full h-48 relative">
@@ -267,20 +170,11 @@
                 </div>
             </div>
         </div>
-    </div></div>
+    </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <script>
         // ==================== CONFIGURATION ====================
-        let isUsingDemoData = false;
-                // Accordion states
-        const accordionStates = {
-            temperatures: true,
-            'sun-rain': false,
-            wind: false,
-            'rain-forecast': false
-        };
-
         const backgroundRules = [
             { startWeek: 48, endWeek: 7, label: 'Winter', color: 'from-blue-600 to-indigo-800', unsp: 'https://images.unsplash.com/photo-1418985991508-e47386d96a71?auto=format&fit=crop&w=1920&q=80' },
             { startWeek: 8, endWeek: 21, label: 'Lente', color: 'from-emerald-500 to-green-700', unsp: 'https://images.unsplash.com/photo-1462275646964-a0e3386b89fa?auto=format&fit=crop&w=1920&q=80' },
@@ -340,6 +234,12 @@
         let dataLoadingPromise = null;
 
         // ==================== KNMI CSV PARSING ====================
+        
+        /**
+         * Parse KNMI CSV file format (etmgeg_XXX.txt)
+         * Format: Header on line 52, values in 0.1 units, -1 indicates <0.05
+         * Returns array of data objects with parsed values
+         */
         function parseKNMICSV(content, stationId) {
             const lines = content.split('\n');
             if (lines.length < 53) {
@@ -347,6 +247,7 @@
                 return [];
             }
             
+            // Find header line (should be line 52, index 51)
             let headerLineIndex = 51;
             for (let i = 50; i < Math.min(60, lines.length); i++) {
                 if (lines[i].startsWith('STN') || lines[i].includes('YYYYMMDD')) {
@@ -364,6 +265,7 @@
             const headers = headerLine.split(',').map(h => h.trim().replace(/^"|"$/g, ''));
             const data = [];
             
+            // Parse data lines (starting from headerLineIndex + 1)
             for (let i = headerLineIndex + 1; i < lines.length; i++) {
                 const line = lines[i].trim();
                 if (!line) continue;
@@ -376,24 +278,29 @@
                     const header = headers[j];
                     const value = values[j];
                     
+                    // Parse numeric values
                     if (header === 'STN') {
                         row[header] = parseInt(value, 10);
                     } else if (header === 'YYYYMMDD') {
                         row[header] = value;
                     } else if (!isNaN(parseFloat(value)) && isFinite(value)) {
                         const numValue = parseFloat(value);
+                        // KNMI uses -1 to indicate <0.05, convert to 0.04 for these cases
+                        // Values are in 0.1 units, so multiply by 0.1
                         row[header] = numValue === -1 ? 0.04 : numValue * 0.1;
                     } else {
                         row[header] = value;
                     }
                 }
                 
+                // Only include valid rows with date
                 if (row.STN && row.YYYYMMDD) {
                     const dateStr = row.YYYYMMDD.toString();
                     const year = parseInt(dateStr.substring(0, 4), 10);
                     const month = parseInt(dateStr.substring(4, 6), 10);
                     const day = parseInt(dateStr.substring(6, 8), 10);
                     
+                    // Only include years 1996-2026
                     if (year >= 1996 && year <= 2026) {
                         row.year = year;
                         row.month = month;
@@ -406,7 +313,12 @@
             return data;
         }
 
-// ==================== DATA LOADING ====================
+        // ==================== DATA LOADING ====================
+        
+        /**
+         * Load all station CSV files and parse them
+         * Tries to fetch from local directory first, then falls back to demo data
+         */
         async function loadAllStationData() {
             if (dataLoadingPromise) {
                 return dataLoadingPromise;
@@ -416,55 +328,50 @@
                 try {
                     console.log('Starting to load KNMI station data...');
                     const allData = [];
+                    const stationIds = Object.keys(stationCoordinates).map(Number);
                     
+                    // List of all expected station files
                     const stationFiles = [
                         235, 249, 251, 257, 260, 269, 270, 273, 275, 277, 278, 279, 280,
                         283, 286, 290, 310, 330, 340, 344, 348, 350, 356, 370, 375, 380, 392
                     ];
                     
+                    // Try to fetch each CSV file
                     const loadPromises = stationFiles.map(async (stationId) => {
                         try {
-                            // De '?t=' toevoeging dwingt de browser om de nieuwste versie te pakken
-                            const url = `https://raw.githubusercontent.com/danielvdneut/knmi-dashboard/main/etmgeg_${stationId}.txt`;
-                            const response = await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`);
-                            
-                            if (!response.ok) {
-                                console.error(`Fout: Bestand ${stationId} niet gevonden op ${url} (HTTP ${response.status})`);
-                                return [];
+                            // Try to fetch from local path
+                            const response = await fetch(`https://danielvdneut.github.io/knmi-dashboard/etmgeg_${stationId}.txt`);
+                            if (response.ok) {
+                                const content = await response.text();
+                                const parsedData = parseKNMICSV(content, stationId);
+                                console.log(`Loaded station ${stationId}: ${parsedData.length} records`);
+                                return parsedData;
                             }
-                            
-                            const content = await response.text();
-                            const parsedData = parseKNMICSV(content, stationId);
-                            
-                            if (parsedData.length === 0) {
-                                console.warn(`Waarschuwing: Bestand ${stationId} is leeg of formaat wordt niet herkend.`);
-                            } else {
-                                console.log(`Gelukt: Station ${stationId} geladen met ${parsedData.length} regels.`);
-                            }
-                            return parsedData;
                         } catch (error) {
-                            console.error(`Netwerkfout bij station ${stationId}:`, error);
-                            return [];
+                            console.warn(`Failed to load etmgeg_${stationId}.txt:`, error.message);
                         }
+                        return [];
                     });
                     
                     const results = await Promise.all(loadPromises);
                     
+                    // Flatten all results
                     for (const stationData of results) {
                         allData.push(...stationData);
                     }
                     
                     if (allData.length > 0) {
-                        console.log(`Succesvol totaal ${allData.length} records ingeladen.`);
+                        console.log(`Successfully loaded ${allData.length} total records from CSV files`);
                         climateData = allData;
                         resolve(allData);
                     } else {
-                        console.error('CRITIEK: Geen enkele CSV kon worden geladen. Controleer de console-fouten hierboven.');
+                        console.warn('No CSV files loaded, falling back to demo data');
+                        // Fall back to demo data
                         generateDemoData();
                         resolve(climateData);
                     }
                 } catch (error) {
-                    console.error('Onverwachte fout tijdens data loading:', error);
+                    console.error('Error loading station data:', error);
                     generateDemoData();
                     resolve(climateData);
                 }
@@ -473,9 +380,10 @@
             return dataLoadingPromise;
         }
 
+        /**
+         * Fallback demo data generator (removed toggle, automatic based on location)
+         */
         function generateDemoData() {
-            isUsingDemoData = true;
-            document.getElementById('demo-data-banner').classList.remove('hidden');
             const data = [];
             for (let year = 1996; year <= 2026; year++) {
                 const warming = (year - 1996) * 0.04;
@@ -519,6 +427,7 @@
         }
 
         // ==================== ARIMA PREDICTION ====================
+        
         function predictArimaYear31(values) {
             if (values.length < 5) return 0;
             const n = values.length;
@@ -548,6 +457,7 @@
         }
 
         // ==================== IDW INTERPOLATION ====================
+        
         function calculateMapIDW(filteredRows, metric) {
             let totalWeight = 0, weightedSum = 0;
             filteredRows.forEach(row => {
@@ -568,13 +478,16 @@
         }
 
         // ==================== DATA AGGREGATION ====================
+        
         function getAggregatedDataForDay(month, day) {
             if (climateData.length === 0) {
                 return { TX: 0, TN: 0, SQ: 0, RH: 0, dryDayProbability: 100, rainDuration: 0, heavyRainProb: 0 };
             }
             
-            const maxYear = climateData.reduce((max, d) => (d.year > max ? d.year : max), 2026);
+            const maxYear = Math.max(...climateData.map(d => d.year || 2026));
             
+            // For Rumpt (station 356), use ARIMA prediction
+            // For other locations, use IDW interpolation
             let filtered = isRumptFocusMode
                 ? climateData.filter(d => d.STN === 356 && d.month === month && d.day === day && d.year >= (maxYear - 30))
                 : climateData.filter(d => activeStations.has(d.STN) && d.month === month && d.day === day && d.year >= (maxYear - 30));
@@ -583,6 +496,7 @@
                 return { TX: 0, TN: 0, SQ: 0, RH: 0, dryDayProbability: 100, rainDuration: 0, heavyRainProb: 0 };
             }
             
+            // For clicked location (not Rumpt), use IDW interpolation
             if (clickedLocation && !isRumptFocusMode) {
                 const rawDryProb = calculateMapIDW(
                     filtered.map(f => ({...f, RH: f.RH <= 0 ? 100 : 0})), 
@@ -604,6 +518,7 @@
                 };
             }
             
+            // For Rumpt, use ARIMA prediction
             const yearlyData = {};
             filtered.forEach(d => {
                 if (!yearlyData[d.year]) {
@@ -640,6 +555,7 @@
         }
 
         // ==================== UI FUNCTIONS ====================
+        
         function getAverage(values) {
             return values.length === 0 ? 0 : values.reduce((a, b) => a + b, 0) / values.length;
         }
@@ -679,49 +595,10 @@
             badge.className = `px-3 py-1 rounded-full text-xs font-bold shadow-sm border text-white bg-gradient-to-r ${activeRule.color}`;
         }
 
-                function toggleAccordion(section) {
-            accordionStates[section] = !accordionStates[section];
-            const content = document.getElementById(`accordion-content-${section}`);
-            const icon = document.getElementById(`accordion-icon-${section}`);
-            
-            if (accordionStates[section]) {
-                content.classList.add('active');
-                content.style.maxHeight = content.scrollHeight + 'px';
-                icon.classList.add('accordion-icon-rotate');
-            } else {
-                content.classList.remove('active');
-                content.style.maxHeight = '0';
-                icon.classList.remove('accordion-icon-rotate');
-            }
-        }
-
-                function resetAllAccordions() {
-            Object.keys(accordionStates).forEach(section => {
-                const content = document.getElementById(`accordion-content-${section}`);
-                const icon = document.getElementById(`accordion-icon-${section}`);
-                const shouldBeOpen = accordionStates[section];
-                
-                if (shouldBeOpen) {
-                    content.classList.add('active');
-                    content.style.maxHeight = content.scrollHeight + 'px';
-                    icon.classList.add('accordion-icon-rotate');
-                } else {
-                    content.classList.remove('active');
-                    content.style.maxHeight = '0';
-                    icon.classList.remove('accordion-icon-rotate');
-                }
-            });
-        }
-
         function initLeafletMap() {
-            // Zorg dat de kaart container zichtbaar is
-            const mapContainer = document.getElementById('map');
-            if (mapContainer) {
-                mapContainer.style.visibility = 'visible';
-            }
             map = L.map('map', { center: [52.2, 5.5], zoom: 7, minZoom: 6, maxZoom: 11, zoomControl: false });
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+                attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
             }).addTo(map);
             L.control.zoom({ position: 'bottomright' }).addTo(map);
             renderMapMarkers();
@@ -729,6 +606,7 @@
                 isRumptFocusMode = false;
                 setTargetLocation(e.latlng.lat, e.latlng.lng);
             });
+            // Fit bounds to show all of Netherlands
             const nlBounds = L.latLngBounds([50.7, 3.3], [53.7, 7.2]);
             map.fitBounds(nlBounds);
         }
@@ -961,32 +839,14 @@
         }
 
         // ==================== MODAL FUNCTIONS ====================
+        
         function openDayDetail(month, day, stats, monthName) {
             document.getElementById('modal-date-title').textContent = `${day} ${monthName}`;
-            
-            // Pas de ondertitel in het venster dynamisch aan op basis van de geselecteerde modus
-            const stationSub = document.getElementById('modal-station-count');
-            if (isRumptFocusMode) {
-                stationSub.innerHTML = `🔮 <span>ARIMA-Prognose Rumpt (Statistisch Model)</span>`;
-            } else {
-                stationSub.innerHTML = `🌍 <span>30-jarig IDW-gemiddelde van gekozen locatie</span>`;
-            }
-
-            // Update Temperaturen section
             document.getElementById('modal-tx').textContent = `${stats.TX} °C`;
             document.getElementById('modal-tn').textContent = `${stats.TN} °C`;
-            document.getElementById('modal-tg').textContent = `${stats.TG || ((stats.TX + stats.TN) / 2).toFixed(1)} °C`;
-            
-            // Update Zon & Neerslag section
             document.getElementById('modal-sq').textContent = `${stats.SQ} uur`;
-            document.getElementById('modal-rh').textContent = `${stats.RH} mm`;
-            
-            // Update Wind section
-            document.getElementById('modal-fhx').textContent = `${stats.FHX || 'N/A'} m/s`;
-            document.getElementById('modal-ddvec').textContent = getWindDirectionName(stats.DDVEC || 0);
-            
-            // Update Neerslagvoorspelling section
             const dryProb = Math.round(stats.dryDayProbability);
+            document.getElementById('modal-dry-prob').textContent = `${dryProb}%`;
             document.getElementById('modal-rain-prob').textContent = `${100 - dryProb}%`;
             document.getElementById('modal-dr').textContent = `${stats.rainDuration.toFixed(1)} uur`;
             document.getElementById('rain-amount').textContent = `${stats.rainAmountIfWet.toFixed(1)} mm`;
@@ -996,7 +856,6 @@
             currentChartMetric = currentMetric;
             updateTabHighlight();
             buildHistoricalChart();
-            resetAllAccordions();
             document.getElementById('day-detail-modal').classList.remove('hidden');
         }
 
@@ -1007,13 +866,11 @@
         }
 
         function updateTabHighlight() {
-            ['TG', 'TX', 'TN', 'SQ', 'RH', 'EV24', 'FHX'].forEach(m => {
+            ['TX', 'TN', 'SQ', 'RH'].forEach(m => {
                 const tab = document.getElementById(`tab-${m}`);
-                if (tab) {
-                    tab.className = (m === currentChartMetric)
-                        ? "px-2 py-1 rounded-lg transition-colors bg-white text-slate-800 shadow-sm border border-blue-300"
-                        : "px-2 py-1 rounded-lg transition-colors text-slate-600 hover:text-slate-900";
-                }
+                tab.className = (m === currentChartMetric)
+                    ? "px-2 py-1 rounded-lg transition-colors bg-white text-slate-800 shadow-sm"
+                    : "px-2 py-1 rounded-lg transition-colors text-slate-600 hover:text-slate-900";
             });
         }
 
@@ -1034,19 +891,12 @@
                     items.forEach(item => {
                         const coord = stationCoordinates[item.stn];
                         if (!coord) return;
-                        
-                        const val = parseFloat(item.val);
-                        if (item.val === undefined || isNaN(val) || (typeof item.val === 'string' && item.val.trim() === '')) {
-                            return; 
-                        }
-                        
                         const dLat = clickedLocation.lat - coord.lat;
                         const dLon = clickedLocation.lon - coord.lon;
                         let distance = Math.sqrt(dLat * dLat + dLon * dLon);
                         if (distance < 0.02) distance = 0.02;
                         const weight = 1 / Math.pow(distance, 2);
-                        
-                        weightedSum += val * weight;
+                        weightedSum += item.val * weight;
                         totalWeight += weight;
                     });
                     return totalWeight === 0 ? 0 : parseFloat((weightedSum / totalWeight).toFixed(1));
@@ -1120,6 +970,7 @@
         }
 
         // ==================== INITIALIZATION ====================
+        
         window.addEventListener('DOMContentLoaded', async function() {
             const currentWeek = getCurrentWeek();
             document.getElementById('current-week-display').textContent = currentWeek;
@@ -1127,9 +978,13 @@
             
             activeStations = new Set(Object.keys(stationCoordinates).map(Number));
             
+            // Initialize map
             initLeafletMap();
+            
+            // Load real KNMI data (will fall back to demo data if files not available)
             await loadAllStationData();
             
+            // Initialize UI
             updateMetricDescription();
             updateDashboard();
             setupMetricListeners();
